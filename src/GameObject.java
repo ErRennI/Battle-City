@@ -3,18 +3,17 @@ import java.awt.Graphics;
 import java.awt.Rectangle;
 
 public abstract class GameObject {
-    int xPos;
-    int yPos;
-    int width;
-    int height;
-    BufferedImage Image;
+    private int xPos;
+    private int yPos;
+    private int width;
+    private int height;
+    private BufferedImage Image;
 
-    public GameObject(int xPos, int yPos, int width, int height, BufferedImage Image){
+    public GameObject(int xPos, int yPos, int width, int height){
         this.xPos = xPos;
         this.yPos = yPos;
         this.width = width;
         this.height = height;
-        this.Image = Image;
     }
 
     public abstract void draw(Graphics g);
