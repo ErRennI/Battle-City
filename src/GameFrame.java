@@ -1,16 +1,31 @@
 import javax.swing.*;
-import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.Color;
+import javax.swing.event.MenuEvent;
+import java.awt.*;
+import java.awt.event.*;
 
 public class GameFrame extends JFrame{
     JMenuBar menu;
-    JPanel gameSpace;
+    JPanel mainSpace;
+    JPanel gamePanel;
+    JPanel sidePanel;
 
     public GameFrame(){
         super("Battle City");
-        setLayout(null);
+        setSize(800, 600);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
+
+
+        setMenu();
+        setJPanel();
+
+        setVisible(true);
+
+
+    }
+
+    public void setMenu(){
         menu = new JMenuBar();
         menu.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 0));
 
@@ -79,18 +94,31 @@ public class GameFrame extends JFrame{
         menu.add(about);
 
         JMenuItem exit = new JMenuItem("Exit");
-        //TO-DO ActionListener
+        exit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        });
         menu.add(exit);
-
-        gameSpace = new JPanel(null);
-        gameSpace.setBackground(Color.BLACK);
-
-
         setJMenuBar(menu);
-        add(gameSpace);
+    }
 
-        setSize(800, 600);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setVisible(true);
+    public void setJPanel(){
+        mainSpace = new JPanel(new BorderLayout());
+
+        gamePanel = new JPanel(null);
+        gamePanel.setBackground(Color.BLACK);
+
+
+        sidePanel = new JPanel(new GridLayout(3,1,20, 20));
+        sidePanel.setBackground(Color.DARK_GRAY);
+        sidePanel.setPreferredSize(new Dimension(200, 0));
+
+        mainSpace.add(sidePanel, BorderLayout.EAST);
+        mainSpace.add(gamePanel, BorderLayout.CENTER);
+
+
+        add(mainSpace, BorderLayout.CENTER);
     }
 }
