@@ -23,4 +23,30 @@ public abstract class GameObject {
     public Rectangle getBounds(){
         return new Rectangle(xPos, yPos, width, height);
     }
+
+    public int getXPos() {
+        return xPos;
+    }
+    public void setXPos(int xPos){
+        this.xPos = xPos;
+    }
+
+    public int getYPos() {
+        return yPos;
+    }
+    public void setYPos(int yPos){
+        this.yPos = yPos;
+    }
+
+    public int getWidth(){
+        return this.width;
+    }
+    public int getHeight(){
+        return this.height;
+    }
+
+    public BufferedImage getImage(){
+        return Image;
+    }
+
 }

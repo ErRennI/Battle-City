@@ -2,10 +2,11 @@ import javax.swing.*;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.Color;
 
 public class GameFrame extends JFrame{
     JMenuBar menu;
-
+    JPanel gameSpace;
 
     public GameFrame(){
         super("Battle City");
@@ -81,7 +82,12 @@ public class GameFrame extends JFrame{
         //TO-DO ActionListener
         menu.add(exit);
 
+        gameSpace = new JPanel(null);
+        gameSpace.setBackground(Color.BLACK);
+
+
         setJMenuBar(menu);
+        add(gameSpace);
 
         setSize(800, 600);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
