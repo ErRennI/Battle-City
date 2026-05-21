@@ -8,7 +8,7 @@ public class SpriteManager {
 
     public SpriteManager(){
         try {
-            spriteSheet = ImageIO.read(new File("SpriteSheet"));
+            spriteSheet = ImageIO.read(getClass().getResourceAsStream("SpriteSheet.png"));
         }
         catch(IOException e){
             System.err.println("Image load was unsuccessful, retry.");

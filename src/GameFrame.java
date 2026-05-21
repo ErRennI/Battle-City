@@ -6,7 +6,7 @@ import java.awt.event.*;
 public class GameFrame extends JFrame{
     JMenuBar menu;
     JPanel mainSpace;
-    JPanel gamePanel;
+    GamePanel gamePanel;
     JPanel sidePanel;
 
     public GameFrame(){
@@ -21,8 +21,6 @@ public class GameFrame extends JFrame{
         setJPanel();
 
         setVisible(true);
-
-
     }
 
     public void setMenu(){
@@ -107,9 +105,7 @@ public class GameFrame extends JFrame{
     public void setJPanel(){
         mainSpace = new JPanel(new BorderLayout());
 
-        gamePanel = new JPanel(null);
-        gamePanel.setBackground(Color.BLACK);
-
+        gamePanel = new GamePanel();
 
         sidePanel = new JPanel(new GridLayout(3,1,20, 20));
         sidePanel.setBackground(Color.DARK_GRAY);
@@ -118,7 +114,8 @@ public class GameFrame extends JFrame{
         mainSpace.add(sidePanel, BorderLayout.EAST);
         mainSpace.add(gamePanel, BorderLayout.CENTER);
 
-
         add(mainSpace, BorderLayout.CENTER);
+
+        gamePanel.startGameThread();
     }
 }

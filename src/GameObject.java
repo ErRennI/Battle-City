@@ -7,7 +7,8 @@ public abstract class GameObject {
     private int yPos;
     private int width;
     private int height;
-    private BufferedImage Image;
+    private BufferedImage image;
+    private boolean isActive = true;
 
     public GameObject(int xPos, int yPos, int width, int height){
         this.xPos = xPos;
@@ -17,6 +18,10 @@ public abstract class GameObject {
     }
 
     public abstract void draw(Graphics g);
+
+    public void deleteGameObject(){
+        this.isActive = false;
+    }
 
     public abstract void update();
 
@@ -46,7 +51,14 @@ public abstract class GameObject {
     }
 
     public BufferedImage getImage(){
-        return Image;
+        return image;
+    }
+    public void setImage(BufferedImage image){
+        this.image = image;
+    }
+
+    public void setActive(boolean state){
+        this.isActive = state;
     }
 
 }

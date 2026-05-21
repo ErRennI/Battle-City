@@ -1,10 +1,9 @@
 import java.awt.Graphics;
 
-public class PlayerTank extends Tank{
-    public boolean up, down, left, right;
 
+public class PlayerTank extends Tank{
     public PlayerTank(int xPos, int yPos){
-        super(xPos, yPos, 1, 3);
+        super(xPos, yPos, 2, 3);
     }
 
     @Override
@@ -19,6 +18,6 @@ public class PlayerTank extends Tank{
 
     @Override
     public void update() {
-
+        super.move();
     }
 }
