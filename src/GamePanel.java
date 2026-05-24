@@ -6,10 +6,15 @@ import javax.swing.*;
 
 
 public class GamePanel extends JPanel implements Runnable{
-    private PlayerTank playerTank;
     private SpriteManager spriteManager;
+    private CollisionManager collisionManager;
+
     private Thread gameThread;
+
     private GameObject[][] map = new GameObject[16][16];
+    private PlayerTank playerTank;
+
+
     private final BufferedImage brickWall;
     private final BufferedImage steelWall;
     private final BufferedImage bush;
@@ -18,8 +23,9 @@ public class GamePanel extends JPanel implements Runnable{
     public GamePanel(){
         setBackground(Color.BLACK);
         setFocusable(true);
-        setLayout(new GridLayout());
+
         spriteManager = new SpriteManager();
+        collisionManager = new CollisionManager(map);
 
         setPreferredSize(new Dimension(512, 512));
 
@@ -30,7 +36,6 @@ public class GamePanel extends JPanel implements Runnable{
 
 
         playerTank = new PlayerTank(300, 300, spriteManager.getPlayerTanks());
-        playerTank.setImage(spriteManager.getSprite(0,0,16,16));
 
         addKeyListener(new KeyAdapter() {
             @Override
@@ -39,18 +44,21 @@ public class GamePanel extends JPanel implements Runnable{
 
                 if(key == KeyEvent.VK_W){
                     playerTank.setDirection(Directions.UP);
+                    playerTank.setMoving(true);
                 }
                 else if(key == KeyEvent.VK_S){
                     playerTank.setDirection(Directions.DOWN);
+                    playerTank.setMoving(true);
                 }
                 else if(key == KeyEvent.VK_A){
                     playerTank.setDirection(Directions.LEFT);
+                    playerTank.setMoving(true);
                 }
                 else if(key == KeyEvent.VK_D){
                     playerTank.setDirection(Directions.RIGHT);
+                    playerTank.setMoving(true);
                 }
 
-                playerTank.setMoving(true);
             }
 
             @Override
@@ -58,6 +66,18 @@ public class GamePanel extends JPanel implements Runnable{
                 playerTank.setMoving(false);
             }
         });
+
+        for (int r = 0; r < 16; r++) {
+            for (int c = 0; c < 16; c++) {
+
+                if (r == 0) {
+                    map[r][c] = new SteelWall(c * 32, 0, steelWall);
+                }
+                else if (r == 5 && (c == 8 || c == 9)) {
+                    map[r][c] = new BrickWall(c * 32, r * 32, brickWall);
+                }
+            }
+        }
     }
 
     public void startGameThread(){
@@ -68,7 +88,18 @@ public class GamePanel extends JPanel implements Runnable{
     @Override
     public void run(){
         while(gameThread != null){
-            playerTank.update();
+            if(playerTank.isMoving()){
+                if(collisionManager.checkTankCollision(playerTank)){
+                    playerTank.setMoving(false);
+                    playerTank.update();
+                    playerTank.setMoving(true);
+                }
+                else{
+                    playerTank.update();
+                }
+            }
+
+
             repaint();
             try {
                 Thread.sleep(16);

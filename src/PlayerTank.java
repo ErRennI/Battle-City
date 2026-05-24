@@ -14,7 +14,6 @@ public class PlayerTank extends Tank{
 
     }
 
-
     @Override
     public void draw(Graphics g) {
         g.drawImage(super.getImage(), super.getXPos(), super.getYPos(), 32, 32, null);

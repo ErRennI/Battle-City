@@ -12,36 +12,24 @@ public abstract class Tank extends GameObject {
         this.speed = speed;
         this.health = health;
         tankDirectionImages = images;
+        setImage(tankDirectionImages[0]);
     }
     public abstract void shoot();
 
     public void move() {
-        if(!isMoving) return;
+        setImage(tankDirectionImages[direction.ordinal()]);
 
-        int nextX = getXPos();
-        int nextY = getYPos();
-
-        if (direction == Directions.UP) {
-            nextY -= speed;
-            setImage(tankDirectionImages[0]);
-        }
-        else if (direction == Directions.DOWN) {
-            nextY += speed;
-            setImage(tankDirectionImages[1]);
-        }
-        else if (direction == Directions.LEFT) {
-            nextX -= speed;
-            setImage(tankDirectionImages[2]);
-        }
-        else if (direction == Directions.RIGHT) {
-            nextX += speed;
-            setImage(tankDirectionImages[3]);
+        if(isMoving){
+            if (direction == Directions.UP)         setYPos(getYPos() - speed);
+            else if (direction == Directions.DOWN)   setYPos(getYPos() + speed);
+            else if (direction == Directions.LEFT)   setXPos(getXPos() - speed);
+            else if (direction == Directions.RIGHT)  setXPos(getXPos() + speed);
         }
 
-        if(nextX >= 0 && nextX <= (512 - getWidth()) && nextY >= 0 && nextY <= (512 - getHeight())){
-            setXPos(nextX);
-            setYPos(nextY);
-        }
+    }
+
+    public boolean isMoving() {
+        return isMoving;
     }
 
     public int getSpeed(){

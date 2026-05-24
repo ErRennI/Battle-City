@@ -12,7 +12,6 @@ public class GameFrame extends JFrame{
     public GameFrame(){
         super("Battle City");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
 
@@ -20,6 +19,7 @@ public class GameFrame extends JFrame{
         setJPanel();
 
         pack();
+        setLocationRelativeTo(null);
         setVisible(true);
     }
 
