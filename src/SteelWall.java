@@ -9,7 +9,7 @@ public class SteelWall extends Wall{
 
     @Override
     public void draw(Graphics g){
-        g.drawImage(getImage(), getXPos(), getYPos(), null);
+        g.drawImage(getImage(), getXPos(), getYPos(),32,32, null);
     }
 
     @Override

@@ -3,7 +3,7 @@ import java.awt.*;
 public abstract class Wall extends GameObject{
     private int wallDurability;
     public Wall(int xPos, int yPos, int wallDurability){
-        super(xPos, yPos, 16, 16);
+        super(xPos, yPos, 32, 32);
         this.wallDurability = wallDurability;
     }
 

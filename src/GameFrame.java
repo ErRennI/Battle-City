@@ -11,7 +11,6 @@ public class GameFrame extends JFrame{
 
     public GameFrame(){
         super("Battle City");
-        setSize(800, 600);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
@@ -20,6 +19,7 @@ public class GameFrame extends JFrame{
         setMenu();
         setJPanel();
 
+        pack();
         setVisible(true);
     }
 
@@ -110,7 +110,6 @@ public class GameFrame extends JFrame{
         sidePanel = new JPanel(new GridLayout(3,1,20, 20));
         sidePanel.setBackground(Color.DARK_GRAY);
         sidePanel.setPreferredSize(new Dimension(200, 0));
-
         mainSpace.add(sidePanel, BorderLayout.EAST);
         mainSpace.add(gamePanel, BorderLayout.CENTER);
 

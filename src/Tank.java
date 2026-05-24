@@ -1,25 +1,47 @@
-import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public abstract class Tank extends GameObject {
     private int speed;
     private int health;
     private Directions direction = Directions.UP;
     private boolean isMoving = false;
+    private final BufferedImage[] tankDirectionImages;
 
-    public Tank(int xPos, int yPos, int speed, int health){
-        super(xPos, yPos, 16, 16);
+    public Tank(int xPos, int yPos, int speed, int health, BufferedImage[] images){
+        super(xPos, yPos, 32, 32);
         this.speed = speed;
         this.health = health;
+        tankDirectionImages = images;
     }
     public abstract void shoot();
 
     public void move() {
         if(!isMoving) return;
 
-        if (direction == Directions.UP) setYPos(getYPos() - speed);
-        else if (direction == Directions.DOWN) setYPos(getYPos() + speed);
-        else if (direction == Directions.LEFT) setXPos(getXPos() - speed);
-        else if (direction == Directions.RIGHT) setXPos(getXPos() + speed);
+        int nextX = getXPos();
+        int nextY = getYPos();
+
+        if (direction == Directions.UP) {
+            nextY -= speed;
+            setImage(tankDirectionImages[0]);
+        }
+        else if (direction == Directions.DOWN) {
+            nextY += speed;
+            setImage(tankDirectionImages[1]);
+        }
+        else if (direction == Directions.LEFT) {
+            nextX -= speed;
+            setImage(tankDirectionImages[2]);
+        }
+        else if (direction == Directions.RIGHT) {
+            nextX += speed;
+            setImage(tankDirectionImages[3]);
+        }
+
+        if(nextX >= 0 && nextX <= (512 - getWidth()) && nextY >= 0 && nextY <= (512 - getHeight())){
+            setXPos(nextX);
+            setYPos(nextY);
+        }
     }
 
     public int getSpeed(){
@@ -41,4 +63,5 @@ public abstract class Tank extends GameObject {
     public void setMoving(boolean isMoving){
         this.isMoving = isMoving;
     }
+
 }

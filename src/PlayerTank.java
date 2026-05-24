@@ -1,9 +1,12 @@
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 
 
 public class PlayerTank extends Tank{
-    public PlayerTank(int xPos, int yPos){
-        super(xPos, yPos, 2, 3);
+
+
+    public PlayerTank(int xPos, int yPos, BufferedImage[] tankImages){
+        super(xPos, yPos, 2, 3, tankImages);
     }
 
     @Override
@@ -11,9 +14,10 @@ public class PlayerTank extends Tank{
 
     }
 
+
     @Override
     public void draw(Graphics g) {
-        g.drawImage(super.getImage(), super.getXPos(), super.getYPos(), null);
+        g.drawImage(super.getImage(), super.getXPos(), super.getYPos(), 32, 32, null);
     }
 
     @Override

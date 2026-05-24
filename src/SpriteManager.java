@@ -1,6 +1,5 @@
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
-import java.io.File;
 import java.io.IOException;
 
 public class SpriteManager {
@@ -33,4 +32,17 @@ public class SpriteManager {
         return sprites;
     }
 
+    public BufferedImage[] getPlayerTanks(){
+        SpriteManager manager = new SpriteManager();
+        BufferedImage[] images = {manager.getSprite(0,0,16,16), manager.getSprite(64,0,16,16),
+                manager.getSprite(32,0,16, 16), manager.getSprite(96,0,16,16)};
+        return images;
+    }
+
+    public BufferedImage[] getEnemyTanks(){
+        SpriteManager manager = new SpriteManager();
+        BufferedImage[] images = {manager.getSprite(128,128,16,16), manager.getSprite(192,0,16,16),
+                manager.getSprite(160,0,16, 16), manager.getSprite(224,0,16,16)};
+        return images;
+    }
 }
