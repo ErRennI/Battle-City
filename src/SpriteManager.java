@@ -43,4 +43,10 @@ public class SpriteManager {
                 this.getSprite(160,0,16, 16), this.getSprite(224,0,16,16)};
         return images;
     }
+
+    public BufferedImage[] getBulletSprites() {
+        BufferedImage[] bulletImages = {this.getSprite(323, 102, 3, 4), this.getSprite(323, 102, 3, 4),
+                this.getSprite(330, 103, 4, 3), this.getSprite(330, 103, 4, 3)};
+        return bulletImages;
+    }
 }

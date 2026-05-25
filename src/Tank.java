@@ -14,7 +14,7 @@ public abstract class Tank extends GameObject {
         tankDirectionImages = images;
         setImage(tankDirectionImages[0]);
     }
-    public abstract void shoot();
+    public abstract Bullet shoot();
 
     public void move() {
         setImage(tankDirectionImages[direction.ordinal()]);

@@ -8,8 +8,8 @@ public class EnemyTank extends Tank {
     }
 
     @Override
-    public void shoot() {
-
+    public Bullet shoot() {
+        return null;
     }
 
     @Override

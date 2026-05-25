@@ -9,7 +9,7 @@ public class CollisionManager {
 
     public boolean checkTankCollision(Tank tank){
         if(!tank.isMoving()){
-            return true;
+            return false;
         }
 
         int nextX = tank.getXPos();

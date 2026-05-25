@@ -4,16 +4,16 @@ import java.awt.*;
 import java.awt.event.*;
 
 public class GameFrame extends JFrame{
-    JMenuBar menu;
-    JPanel mainSpace;
-    GamePanel gamePanel;
-    JPanel sidePanel;
+    private JMenuBar menu;
+    private JPanel mainSpace;
+    private GamePanel gamePanel;
+    private JPanel sidePanel;
 
     public GameFrame(){
         super("Battle City");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
 
+        setLayout(new BorderLayout());
 
         setMenu();
         setJPanel();

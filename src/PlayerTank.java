@@ -3,15 +3,16 @@ import java.awt.image.BufferedImage;
 
 
 public class PlayerTank extends Tank{
+    private BufferedImage[] bulletImages;
 
-
-    public PlayerTank(int xPos, int yPos, BufferedImage[] tankImages){
+    public PlayerTank(int xPos, int yPos, BufferedImage[] tankImages, BufferedImage[] bulletImages){
         super(xPos, yPos, 2, 3, tankImages);
+        this.bulletImages = bulletImages;
     }
 
     @Override
-    public void shoot() {
-
+    public Bullet shoot() {
+        return new Bullet(getXPos() + 12, getYPos() + 12, getDirection(), true, bulletImages);
     }
 
     @Override

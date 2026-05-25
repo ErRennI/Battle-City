@@ -2,6 +2,8 @@ import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Iterator;
 import javax.swing.*;
 
 
@@ -12,6 +14,7 @@ public class GamePanel extends JPanel implements Runnable{
     private Thread gameThread;
 
     private GameObject[][] map = new GameObject[16][16];
+    private ArrayList<Bullet> bullets = new ArrayList<>();
     private PlayerTank playerTank;
 
 
@@ -19,6 +22,7 @@ public class GamePanel extends JPanel implements Runnable{
     private final BufferedImage steelWall;
     private final BufferedImage bush;
     private final BufferedImage water;
+    private BufferedImage[] bulletImage = new BufferedImage[4];
 
     public GamePanel(){
         setBackground(Color.BLACK);
@@ -33,9 +37,9 @@ public class GamePanel extends JPanel implements Runnable{
         steelWall = spriteManager.getSprite(256, 16, 16, 16);
         bush = spriteManager.getSprite(272, 32, 16, 16);
         water = spriteManager.getSprite(256, 32, 16,16);
+        bulletImage = spriteManager.getBulletSprites();
 
-
-        playerTank = new PlayerTank(300, 300, spriteManager.getPlayerTanks());
+        playerTank = new PlayerTank(300, 300, spriteManager.getPlayerTanks(), bulletImage);
 
         addKeyListener(new KeyAdapter() {
             @Override
@@ -58,12 +62,19 @@ public class GamePanel extends JPanel implements Runnable{
                     playerTank.setDirection(Directions.RIGHT);
                     playerTank.setMoving(true);
                 }
+                else if(key == KeyEvent.VK_SPACE){
+                    bullets.add(playerTank.shoot());
+                }
 
             }
 
             @Override
             public void keyReleased(KeyEvent e){
-                playerTank.setMoving(false);
+                int key = e.getKeyCode();
+
+                if(key == KeyEvent.VK_W || key == KeyEvent.VK_S || key == KeyEvent.VK_A || key == KeyEvent.VK_D) {
+                    playerTank.setMoving(false);
+                }
             }
         });
 
@@ -71,7 +82,7 @@ public class GamePanel extends JPanel implements Runnable{
             for (int c = 0; c < 16; c++) {
 
                 if (r == 0) {
-                    map[r][c] = new SteelWall(c * 32, 0, steelWall);
+                    map[r][c] = new SteelWall(c * 32, r * 32, steelWall);
                 }
                 else if (r == 5 && (c == 8 || c == 9)) {
                     map[r][c] = new BrickWall(c * 32, r * 32, brickWall);
@@ -88,17 +99,21 @@ public class GamePanel extends JPanel implements Runnable{
     @Override
     public void run(){
         while(gameThread != null){
-            if(playerTank.isMoving()){
-                if(collisionManager.checkTankCollision(playerTank)){
-                    playerTank.setMoving(false);
-                    playerTank.update();
-                    playerTank.setMoving(true);
-                }
-                else{
+            if(playerTank.isMoving()) {
+                if (!collisionManager.checkTankCollision(playerTank)) {
                     playerTank.update();
                 }
             }
 
+            Iterator<Bullet> iterator = bullets.iterator();
+            while(iterator.hasNext()){
+                Bullet b = iterator.next();
+                b.update();
+
+                if(b.getXPos() < 0 || b.getXPos() > 512 || b.getYPos() < 0 || b.getYPos() > 512){
+                    iterator.remove();
+                }
+            }
 
             repaint();
             try {
@@ -114,6 +129,10 @@ public class GamePanel extends JPanel implements Runnable{
         super.paintComponent(g);
 
         playerTank.draw(g);
+
+        for (Bullet b : bullets) {
+            b.draw(g);
+        }
 
         for(int r=0; r<16; r++) {
             for(int c=0; c<16; c++) {
