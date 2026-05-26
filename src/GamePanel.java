@@ -16,7 +16,7 @@ public class GamePanel extends JPanel implements Runnable{
     private GameObject[][] map = new GameObject[16][16];
     private ArrayList<Bullet> bullets = new ArrayList<>();
     private PlayerTank playerTank;
-
+    private Eagle playerBase;
 
     private final BufferedImage brickWall;
     private final BufferedImage steelWall;
@@ -63,9 +63,17 @@ public class GamePanel extends JPanel implements Runnable{
                     playerTank.setMoving(true);
                 }
                 else if(key == KeyEvent.VK_SPACE){
-                    bullets.add(playerTank.shoot());
-                }
+                    short playerBulletCount = 0;
+                    for(Bullet b: bullets){
+                        if(b.isPlayerBullet()){
+                            playerBulletCount++;
+                        }
+                    }
 
+                    if(playerBulletCount < playerTank.getMaxBullets()){
+                        bullets.add(playerTank.shoot());
+                    }
+                }
             }
 
             @Override
@@ -89,6 +97,8 @@ public class GamePanel extends JPanel implements Runnable{
                 }
             }
         }
+        playerBase = new Eagle(8 * 32, 15 * 32, spriteManager.getEagleSprites());
+        map[15][8] = playerBase;
     }
 
     public void startGameThread(){
@@ -110,6 +120,11 @@ public class GamePanel extends JPanel implements Runnable{
                 Bullet b = iterator.next();
                 b.update();
 
+                if(collisionManager.checkBulletCollision(b)){
+                    iterator.remove();
+                    continue;
+                }
+
                 if(b.getXPos() < 0 || b.getXPos() > 512 || b.getYPos() < 0 || b.getYPos() > 512){
                     iterator.remove();
                 }
@@ -128,16 +143,16 @@ public class GamePanel extends JPanel implements Runnable{
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
+        for(int r=0; r<16; r++) {
+            for(int c=0; c<16; c++) {
+                if(map[r][c] != null) map[r][c].draw(g);
+            }
+        }
         playerTank.draw(g);
 
         for (Bullet b : bullets) {
             b.draw(g);
         }
 
-        for(int r=0; r<16; r++) {
-            for(int c=0; c<16; c++) {
-                if(map[r][c] != null) map[r][c].draw(g);
-            }
-        }
     }
 }

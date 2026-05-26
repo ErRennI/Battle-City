@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 
 public class PlayerTank extends Tank{
     private BufferedImage[] bulletImages;
+    private short maxBullets = 1;
 
     public PlayerTank(int xPos, int yPos, BufferedImage[] tankImages, BufferedImage[] bulletImages){
         super(xPos, yPos, 2, 3, tankImages);
@@ -23,5 +24,9 @@ public class PlayerTank extends Tank{
     @Override
     public void update() {
         super.move();
+    }
+
+    public short getMaxBullets() {
+        return maxBullets;
     }
 }

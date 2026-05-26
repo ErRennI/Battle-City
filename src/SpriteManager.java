@@ -49,4 +49,9 @@ public class SpriteManager {
                 this.getSprite(330, 103, 4, 3), this.getSprite(330, 103, 4, 3)};
         return bulletImages;
     }
+
+    public BufferedImage[] getEagleSprites(){
+        BufferedImage[] eagleImage = {this.getSprite(304, 32, 16, 16), this.getSprite(320, 32, 16, 16)};
+        return eagleImage;
+    }
 }

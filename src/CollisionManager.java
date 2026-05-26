@@ -46,4 +46,32 @@ public class CollisionManager {
         }
         return false;
     }
+
+    public boolean checkBulletCollision(Bullet bullet){
+        Rectangle bulletBounds = bullet.getBounds();
+
+        for(int r = 0; r < 16; r++){
+            for(int c = 0; c < 16; c++){
+                GameObject gameObject = map[r][c];
+
+                if(gameObject != null && bulletBounds.intersects(gameObject.getBounds())){
+                    if(gameObject instanceof Eagle eagle){
+                        if(eagle.isAlive()){
+                            eagle.destroy();
+                            //TODO: finishes the game
+                        }
+                        return true;
+                    }
+
+                    if(gameObject instanceof BrickWall){
+                        map[r][c] = null;
+                    }
+                    return true;
+                }
+
+            }
+        }
+        return false;
+    }
+
 }
