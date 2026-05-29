@@ -2,6 +2,9 @@ import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.*;
@@ -11,10 +14,13 @@ public class GamePanel extends JPanel implements Runnable{
     private SpriteManager spriteManager;
     private CollisionManager collisionManager;
 
+    private GameFrame gameFrame;
     private Thread gameThread;
 
     private GameObject[][] map = new GameObject[16][16];
     private ArrayList<Bullet> bullets = new ArrayList<>();
+    private ArrayList<EnemyTank> enemyTanks = new ArrayList<>();
+    private int enemySpawnTimer = 0;
     private PlayerTank playerTank;
     private Eagle playerBase;
 
@@ -24,7 +30,8 @@ public class GamePanel extends JPanel implements Runnable{
     private final BufferedImage water;
     private BufferedImage[] bulletImage = new BufferedImage[4];
 
-    public GamePanel(){
+    public GamePanel(GameFrame gameFrame){
+        this.gameFrame = gameFrame;
         setBackground(Color.BLACK);
         setFocusable(true);
 
@@ -101,10 +108,20 @@ public class GamePanel extends JPanel implements Runnable{
         map[15][8] = playerBase;
     }
 
-    public void startGameThread(){
+    public void startGameThread(String mapName){
+        if(gameThread != null) {
+            gameThread = null;
+        }
+
+        loadMapFromJSONForGame(mapName);
+        if (playerTank != null) {
+            gameFrame.updateLivesUI(playerTank.getHealth());
+        }
+
         gameThread = new Thread(this);
         gameThread.start();
     }
+
 
     @Override
     public void run(){
@@ -113,6 +130,12 @@ public class GamePanel extends JPanel implements Runnable{
                 if (!collisionManager.checkTankCollision(playerTank)) {
                     playerTank.update();
                 }
+            }
+
+            enemySpawnTimer++;
+
+            if(enemySpawnTimer > 300 && enemyTanks.size() < 4){
+                //enemyTanks.add(new EnemyTank(64, 32, ))
             }
 
             Iterator<Bullet> iterator = bullets.iterator();
@@ -154,5 +177,53 @@ public class GamePanel extends JPanel implements Runnable{
             b.draw(g);
         }
 
+    }
+
+    public void loadMapFromJSONForGame(String mapName) {
+        File file = new File("maps.json");
+        if(!file.exists()) return;
+
+        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while((line = reader.readLine()) != null) sb.append(line.trim());
+
+            String content = sb.toString();
+            content = content.substring(1, content.length() - 1);
+
+            String[] parts = content.split("],\"");
+            String matrixData = null;
+            for(String part : parts){
+                String[] kv = part.split("\":");
+                String key = kv[0].replace("\"", "").replace("{", "").trim();
+                if(key.equals(mapName)){
+                    matrixData = kv[1].trim();
+                    if(!matrixData.endsWith("]")) matrixData += "]";
+                    break;
+                }
+            }
+
+            if(matrixData == null) return;
+
+            matrixData = matrixData.replace("[[", "").replace("]]", "");
+            String[] rows = matrixData.split("\\],\\[");
+
+            for(int r = 0; r < 16; r++){
+                String[] cols = rows[r].split(",");
+                for(int c = 0; c < 16; c++) {
+                    int tileType = Integer.parseInt(cols[c].trim());
+                    int xPos = c * 32;
+                    int yPos = r * 32;
+
+                    if(tileType == 0) map[r][c] = null;
+                    else if(tileType == 1) map[r][c] = new BrickWall(xPos, yPos, brickWall);
+                    else if(tileType == 2) map[r][c] = new SteelWall(xPos, yPos, steelWall);
+                }
+            }
+
+            map[15][8] = playerBase;
+        } catch (Exception e) {
+            System.err.println("There was a exception while reading from file!");
+        }
     }
 }
