@@ -6,11 +6,13 @@ public class Bullet extends GameObject{
     private Directions direction;
     private final int speed = 4;
     private boolean playerBullet;
+    private int bulletLevel;
 
-    public Bullet(int xPos, int yPos, Directions direction, boolean playerBullet, BufferedImage[] bulletImages){
+    public Bullet(int xPos, int yPos, Directions direction, boolean playerBullet, int bulletLevel,BufferedImage[] bulletImages){
         super(xPos, yPos, 8, 8);
         this.direction = direction;
         this.playerBullet = playerBullet;
+        this.bulletLevel = bulletLevel;
         setImage(bulletImages[direction.ordinal()]);
     }
 
@@ -29,5 +31,14 @@ public class Bullet extends GameObject{
 
     public boolean isPlayerBullet(){
         return playerBullet;
+    }
+
+    public void increaseBulletLevel(){
+        if(bulletLevel < 3){
+            bulletLevel++;
+        }
+    }
+    public int getBulletLevel(){
+        return bulletLevel;
     }
 }

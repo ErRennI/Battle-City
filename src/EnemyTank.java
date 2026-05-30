@@ -20,7 +20,7 @@ public class EnemyTank extends Tank {
         int bulletX = getXPos() + 12;
         int bulletY = getYPos() + 12;
 
-        return new Bullet(bulletX, bulletY, getDirection(), false, bulletImages);
+        return new Bullet(bulletX, bulletY, getDirection(), false, 1, bulletImages);
     }
 
     @Override

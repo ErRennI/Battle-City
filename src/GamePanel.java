@@ -38,7 +38,6 @@ public class GamePanel extends JPanel implements Runnable{
         setFocusable(true);
 
         spriteManager = new SpriteManager();
-        collisionManager = new CollisionManager(map);
 
         setPreferredSize(new Dimension(512, 512));
 
@@ -49,6 +48,7 @@ public class GamePanel extends JPanel implements Runnable{
         bulletImage = spriteManager.getBulletSprites();
 
         playerTank = new PlayerTank(300, 300, spriteManager.getPlayerTanks(), bulletImage);
+        collisionManager = new CollisionManager(map, playerTank, enemyTanks);
 
         addKeyListener(new KeyAdapter() {
             @Override
@@ -197,6 +197,9 @@ public class GamePanel extends JPanel implements Runnable{
             }
 
             repaint();
+            if (playerTank != null) {
+                gameFrame.updateLivesUI(playerTank.getHealth());
+            }
             try {
                 Thread.sleep(16);
             } catch (InterruptedException e) {

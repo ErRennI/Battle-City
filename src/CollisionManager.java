@@ -1,10 +1,16 @@
 import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class CollisionManager {
     private GameObject[][] map;
+    private PlayerTank playerTank;
+    private ArrayList<EnemyTank> enemyTanks;
 
-    public CollisionManager(GameObject[][] map){
+    public CollisionManager(GameObject[][] map, PlayerTank playerTank, ArrayList<EnemyTank> enemyTanks){
         this.map = map;
+        this.playerTank = playerTank;
+        this.enemyTanks = enemyTanks;
     }
 
     public boolean checkTankCollision(Tank tank){
@@ -50,11 +56,38 @@ public class CollisionManager {
     public boolean checkBulletCollision(Bullet bullet){
         Rectangle bulletBounds = bullet.getBounds();
 
+        if(bullet.isPlayerBullet()){
+            Iterator<EnemyTank> enemyTankIterator = enemyTanks.iterator();
+            while(enemyTankIterator.hasNext()){
+                EnemyTank enemy = enemyTankIterator.next();
+                if(bulletBounds.intersects(enemy.getBounds())){
+                    enemyTankIterator.remove();
+                    return true;
+                }
+            }
+        }
+        else{
+            if(bulletBounds.intersects(playerTank.getBounds())){
+                playerTank.setHealth(playerTank.getHealth() - 1);
+
+                if(playerTank.getHealth() <= 0){
+                    //TODO gameOver
+                }
+                return true;
+            }
+        }
+
+
         for(int r = 0; r < 16; r++){
             for(int c = 0; c < 16; c++){
                 GameObject gameObject = map[r][c];
 
                 if(gameObject != null && bulletBounds.intersects(gameObject.getBounds())){
+
+                    if (gameObject instanceof Bush || gameObject instanceof Water) {
+                        continue;
+                    }
+
                     if(gameObject instanceof Eagle eagle){
                         if(eagle.isAlive()){
                             eagle.destroy();
@@ -66,6 +99,11 @@ public class CollisionManager {
                     if(gameObject instanceof BrickWall){
                         map[r][c] = null;
                     }
+
+                    if((gameObject instanceof SteelWall) && bullet.getBulletLevel() == 3){
+                        map[r][c] = null;
+                    }
+
                     return true;
                 }
 

@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 public class PlayerTank extends Tank{
     private BufferedImage[] bulletImages;
     private short maxBullets = 1;
+    private int bulletLevel = 1;
 
     public PlayerTank(int xPos, int yPos, BufferedImage[] tankImages, BufferedImage[] bulletImages){
         super(xPos, yPos, 2, 3, tankImages);
@@ -13,7 +14,7 @@ public class PlayerTank extends Tank{
 
     @Override
     public Bullet shoot() {
-        return new Bullet(getXPos() + 12, getYPos() + 12, getDirection(), true, bulletImages);
+        return new Bullet(getXPos() + 12, getYPos() + 12, getDirection(), true, bulletLevel, bulletImages);
     }
 
     @Override
@@ -28,5 +29,14 @@ public class PlayerTank extends Tank{
 
     public short getMaxBullets() {
         return maxBullets;
+    }
+
+    public void increaseBulletLevel(){
+        if(bulletLevel < 3){
+            bulletLevel++;
+        }
+    }
+    public int getBulletLevel(){
+        return bulletLevel;
     }
 }
