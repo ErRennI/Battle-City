@@ -39,7 +39,7 @@ public class CollisionManager {
             for(int c = 0; c < 16; c++){
                 GameObject gameObject = map[r][c];
 
-                if(gameObject != null && nextBounds.intersects(gameObject.getBounds())){
+                if(gameObject != null && !(gameObject instanceof Bush) && nextBounds.intersects(gameObject.getBounds())){
                     return true;
                 }
             }

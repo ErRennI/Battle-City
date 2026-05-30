@@ -72,7 +72,12 @@ public class MapEditor extends JPanel{
         else if(selectedTool == 2){
             editedMap[r][c] = new SteelWall(xPos, yPos, steelWall);
         }
-        //TODO: Bush and water
+        else if(selectedTool == 3){
+            editedMap[r][c] = new Bush(xPos, yPos, bush);
+        }
+        else if(selectedTool == 4){
+            editedMap[r][c] = new Water(xPos, yPos, water);
+        }
 
         repaint();
     }
@@ -95,7 +100,8 @@ public class MapEditor extends JPanel{
                 if (tile == null) sb.append("0");
                 else if (tile instanceof BrickWall) sb.append("1");
                 else if (tile instanceof SteelWall) sb.append("2");
-                // TODO: İleride Bush için 3, Water için 4 ekleyebilirsin
+                else if (tile instanceof Bush) sb.append("3");
+                else if (tile instanceof Water) sb.append("4");
 
                 if (c < 15) sb.append(",");
             }
@@ -213,6 +219,8 @@ public class MapEditor extends JPanel{
                     if (tileType == 0) editedMap[r][c] = null;
                     else if (tileType == 1) editedMap[r][c] = new BrickWall(xPos, yPos, brickWall);
                     else if (tileType == 2) editedMap[r][c] = new SteelWall(xPos, yPos, steelWall);
+                    else if (tileType == 3) editedMap[r][c] = new Bush(xPos, yPos, bush);
+                    else if (tileType == 4) editedMap[r][c] = new Water(xPos, yPos, water);
                 }
             }
             repaint();

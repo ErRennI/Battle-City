@@ -204,7 +204,7 @@ public class GameFrame extends JFrame{
         editorSidePanel.add(bushButton);
 
         JButton waterButton = new JButton("Water");
-        bushButton.addActionListener(new ActionListener() {
+        waterButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 mapEditorPanel.setSelectedTool(4);

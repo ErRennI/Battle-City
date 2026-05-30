@@ -8,6 +8,8 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.*;
+import java.util.Random;
+
 
 
 public class GamePanel extends JPanel implements Runnable{
@@ -97,7 +99,7 @@ public class GamePanel extends JPanel implements Runnable{
             for (int c = 0; c < 16; c++) {
 
                 if (r == 0) {
-                    map[r][c] = new SteelWall(c * 32, r * 32, steelWall);
+
                 }
                 else if (r == 5 && (c == 8 || c == 9)) {
                     map[r][c] = new BrickWall(c * 32, r * 32, brickWall);
@@ -135,7 +137,48 @@ public class GamePanel extends JPanel implements Runnable{
             enemySpawnTimer++;
 
             if(enemySpawnTimer > 300 && enemyTanks.size() < 4){
-                //enemyTanks.add(new EnemyTank(64, 32, ))
+                enemySpawnTimer = 0;
+
+                int[] spawnXPositions = { 0, 224, 448 };
+
+                int randomSpawnX = new Random().nextInt(3);
+                int spawnX = spawnXPositions[randomSpawnX];
+                int spawnY = 0;
+
+                int spawnCol = spawnX / 32;
+                int spawnRow = 0;
+
+                Rectangle spawnBounds = new Rectangle(spawnX, spawnY, 32, 32);
+                boolean isSpawnBlocked = false;
+
+                if (spawnBounds.intersects(playerTank.getBounds())) {
+                    isSpawnBlocked = true;
+                } else {
+                    for (EnemyTank enemy : enemyTanks) {
+                        if (spawnBounds.intersects(enemy.getBounds())) {
+                            isSpawnBlocked = true;
+                            break;
+                        }
+                    }
+                }
+                if (!isSpawnBlocked) {
+                    enemyTanks.add(new EnemyTank(spawnX, spawnY, spriteManager.getEnemyTanks(), bulletImage));
+                } else {
+                    enemySpawnTimer = 240;
+                }
+            }
+
+            for(EnemyTank enemy: enemyTanks){
+                if(collisionManager.checkTankCollision(enemy)){
+                    enemy.changeDirection();
+                }
+                else{
+                    enemy.update();
+                }
+
+                if(enemy.shouldShoot()){
+                    bullets.add(enemy.shoot());
+                }
             }
 
             Iterator<Bullet> iterator = bullets.iterator();
@@ -168,13 +211,25 @@ public class GamePanel extends JPanel implements Runnable{
 
         for(int r=0; r<16; r++) {
             for(int c=0; c<16; c++) {
-                if(map[r][c] != null) map[r][c].draw(g);
+                if(map[r][c] != null && !(map[r][c] instanceof Bush)) map[r][c].draw(g);
             }
         }
         playerTank.draw(g);
 
+        for (EnemyTank enemy : enemyTanks) {
+            enemy.draw(g);
+        }
+
         for (Bullet b : bullets) {
             b.draw(g);
+        }
+
+        for(int r=0; r<16; r++) {
+            for(int c=0; c<16; c++) {
+                if(map[r][c] instanceof Bush) {
+                    map[r][c].draw(g);
+                }
+            }
         }
 
     }
@@ -218,6 +273,8 @@ public class GamePanel extends JPanel implements Runnable{
                     if(tileType == 0) map[r][c] = null;
                     else if(tileType == 1) map[r][c] = new BrickWall(xPos, yPos, brickWall);
                     else if(tileType == 2) map[r][c] = new SteelWall(xPos, yPos, steelWall);
+                    else if(tileType == 3) map[r][c] = new Bush(xPos, yPos, bush);
+                    else if(tileType == 4) map[r][c] = new Water(xPos, yPos, water);
                 }
             }
 

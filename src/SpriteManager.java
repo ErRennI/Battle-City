@@ -39,7 +39,7 @@ public class SpriteManager {
     }
 
     public BufferedImage[] getEnemyTanks(){
-        BufferedImage[] images = {this.getSprite(128,128,16,16), this.getSprite(192,0,16,16),
+        BufferedImage[] images = {this.getSprite(128,0,16,16), this.getSprite(192,0,16,16),
                 this.getSprite(160,0,16, 16), this.getSprite(224,0,16,16)};
         return images;
     }
