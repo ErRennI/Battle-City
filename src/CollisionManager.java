@@ -83,6 +83,7 @@ public class CollisionManager {
                 EnemyTank enemy = enemyTankIterator.next();
                 if(bulletBounds.intersects(enemy.getBounds())){
                     enemyTankIterator.remove();
+                    gamePanel.incrementScore();
                     return true;
                 }
             }

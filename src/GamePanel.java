@@ -13,7 +13,7 @@ import java.util.Random;
 
 
 public class GamePanel extends JPanel implements Runnable{
-    private SpriteManager spriteManager;
+    private final SpriteManager spriteManager;
     private CollisionManager collisionManager;
 
     private GameFrame gameFrame;
@@ -32,8 +32,11 @@ public class GamePanel extends JPanel implements Runnable{
     private final BufferedImage water;
     private BufferedImage[] bulletImage = new BufferedImage[4];
 
-    int enemyTankSpeed = 1;
+    private int enemyTankSpeed = 1;
     private boolean gameOver;
+    private int score = 0;
+    private long gameStartTime;
+    private int destroyedEnemyCount = 0;
 
     public GamePanel(GameFrame gameFrame){
         this.gameFrame = gameFrame;
@@ -106,6 +109,10 @@ public class GamePanel extends JPanel implements Runnable{
         bullets.clear();
         enemyTanks.clear();
         enemySpawnTimer = 0;
+
+        score = 0;
+        destroyedEnemyCount = 0;
+        gameStartTime = System.currentTimeMillis();
 
         for (int r = 0; r < 16; r++) {
             for (int c = 0; c < 16; c++) {
@@ -198,10 +205,16 @@ public class GamePanel extends JPanel implements Runnable{
                 }
             }
 
+            if (destroyedEnemyCount >= 20) {
+                triggerGameOver();
+            }
             repaint();
             if (playerTank != null) {
                 gameFrame.updateLivesUI(playerTank.getHealth());
             }
+
+            gameFrame.updateEnemiesUI(destroyedEnemyCount);
+
             try {
                 Thread.sleep(16);
             } catch (InterruptedException e) {
@@ -212,7 +225,10 @@ public class GamePanel extends JPanel implements Runnable{
 
     public void triggerGameOver(){
         this.gameOver = true;
+        this.gameThread = null;
+
         repaint();
+        ScoreManager.saveScore(gameFrame, score, gameStartTime);
     }
 
     @Override
@@ -308,5 +324,18 @@ public class GamePanel extends JPanel implements Runnable{
         } catch (Exception e) {
             System.err.println("There was a exception while reading from file!");
         }
+    }
+
+    public void incrementScore(){
+        this.score += 100;
+        this.destroyedEnemyCount++;
+    }
+
+    public int getScore(){
+        return this.score;
+    }
+
+    public long getGameStartTime() {
+        return this.gameStartTime;
     }
 }

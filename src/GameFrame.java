@@ -16,6 +16,7 @@ public class GameFrame extends JFrame{
     private CardLayout sideCardLayout;
     private JPanel sideContainer;
     private JLabel livesLabel;
+    private JLabel enemyLabel;
 
 
     public GameFrame(){
@@ -43,9 +44,9 @@ public class GameFrame extends JFrame{
                 cardLayout.show(container, "GAME");
                 sideCardLayout.show(sideContainer, "GAME_SIDE");
 
-                String mapToPlay = JOptionPane.showInputDialog(null, "Enter the map name you want to play:", "Custom Map");
+                String mapToPlay = JOptionPane.showInputDialog(null, "Enter the map name you want to play:\nPre-Loaded Maps:\n1.Level_1\n2.Level_2\n3.Level_3", "Level_1");
                 if (mapToPlay == null || mapToPlay.trim().isEmpty()) {
-                    mapToPlay = "Custom Map";
+                    mapToPlay = "Level_1";
                 }
 
                 gamePanel.startGameThread(mapToPlay.trim());
@@ -70,7 +71,12 @@ public class GameFrame extends JFrame{
         menu.add(options);
 
         JMenuItem highScores = new JMenuItem("High Scores");
-        //TO-DO ActionListener
+        highScores.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ScoreManager.displayHighScores(GameFrame.this);
+            }
+        });
         menu.add(highScores);
 
         JMenuItem help = new JMenuItem("Help");
@@ -157,13 +163,12 @@ public class GameFrame extends JFrame{
         infoTitle.setForeground(Color.WHITE);
         gameSidePanel.add(infoTitle);
 
-        //TODO player health ile enemy sayısını dynamic yap
-        livesLabel = new JLabel("PLAYER LIVES: 3");
+        livesLabel = new JLabel("PLAYER LIVES:");
         livesLabel.setFont(new Font("Arial", Font.BOLD, 14));
         livesLabel.setForeground(Color.RED);
         gameSidePanel.add(livesLabel);
 
-        JLabel enemyLabel = new JLabel("ENEMIES LEFT: 20");
+        enemyLabel = new JLabel("ENEMIES LEFT:");
         enemyLabel.setFont(new Font("Arial", Font.BOLD, 14));
         enemyLabel.setForeground(Color.ORANGE);
         gameSidePanel.add(enemyLabel);
@@ -261,6 +266,13 @@ public class GameFrame extends JFrame{
     public void updateLivesUI(int lives) {
         if (livesLabel != null) {
             livesLabel.setText("PLAYER LIVES: " + lives);
+        }
+    }
+
+    public void updateEnemiesUI(int destroyedEnemyCount){
+        if(enemyLabel != null){
+            int leftEnemies = 20 - destroyedEnemyCount;
+            enemyLabel.setText("ENEMIES LEFT: " + leftEnemies);
         }
     }
 }
