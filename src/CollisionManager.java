@@ -6,11 +6,13 @@ public class CollisionManager {
     private GameObject[][] map;
     private PlayerTank playerTank;
     private ArrayList<EnemyTank> enemyTanks;
+    private GamePanel gamePanel;
 
-    public CollisionManager(GameObject[][] map, PlayerTank playerTank, ArrayList<EnemyTank> enemyTanks){
+    public CollisionManager(GameObject[][] map, PlayerTank playerTank, ArrayList<EnemyTank> enemyTanks, GamePanel gamePanel){
         this.map = map;
         this.playerTank = playerTank;
         this.enemyTanks = enemyTanks;
+        this.gamePanel = gamePanel;
     }
 
     public boolean checkTankCollision(Tank tank){
@@ -40,6 +42,25 @@ public class CollisionManager {
         }
 
         Rectangle nextBounds = new Rectangle(nextX, nextY, tank.getWidth(), tank.getHeight());
+
+        if (tank instanceof PlayerTank) {
+            for (EnemyTank enemy : enemyTanks) {
+                if (nextBounds.intersects(enemy.getBounds())) {
+                    return true;
+                }
+            }
+        }
+
+        else if (tank instanceof EnemyTank) {
+            if (nextBounds.intersects(playerTank.getBounds())) {
+                return true;
+            }
+            for (EnemyTank otherEnemy : enemyTanks) {
+                if (tank != otherEnemy && nextBounds.intersects(otherEnemy.getBounds())) {
+                    return true;
+                }
+            }
+        }
 
         for(int r = 0; r < 16; r++){
             for(int c = 0; c < 16; c++){
@@ -71,7 +92,7 @@ public class CollisionManager {
                 playerTank.setHealth(playerTank.getHealth() - 1);
 
                 if(playerTank.getHealth() <= 0){
-                    //TODO gameOver
+                    gamePanel.triggerGameOver();
                 }
                 return true;
             }
@@ -91,7 +112,7 @@ public class CollisionManager {
                     if(gameObject instanceof Eagle eagle){
                         if(eagle.isAlive()){
                             eagle.destroy();
-                            //TODO: finishes the game
+                            gamePanel.triggerGameOver();
                         }
                         return true;
                     }
@@ -104,9 +125,10 @@ public class CollisionManager {
                         map[r][c] = null;
                     }
 
-                    return true;
+                    if(gameObject instanceof SteelWall){
+                        return true;
+                    }
                 }
-
             }
         }
         return false;

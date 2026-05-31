@@ -54,4 +54,8 @@ public class SpriteManager {
         BufferedImage[] eagleImage = {this.getSprite(304, 32, 16, 16), this.getSprite(320, 32, 16, 16)};
         return eagleImage;
     }
+
+    public BufferedImage getGameOver(){
+        return this.getSprite(288, 184, 32, 16);
+    }
 }

@@ -58,7 +58,7 @@ public class MapEditor extends JPanel{
 
         if (editedMap[r][c] instanceof Eagle) return;
 
-        if ((r == 0 && (c == 0 || c == 7 || c == 14)) || (r == 15 && c == 8)) return;
+        if ((r == 0 && (c == 0 || c == 7 || c == 14)) || (r == 15 && c == 8) || (r == 15 && c == 4)) return;
 
         int xPos = c * 32;
         int yPos = r * 32;
@@ -210,7 +210,7 @@ public class MapEditor extends JPanel{
             for(int r = 0; r < 16; r++){
                 String[] cols = rows[r].split(",");
                 for(int c = 0; c < 16; c++){
-                    if(r == 15 && c == 8) continue;
+                    if((r == 15 && c == 8) || (r == 15 && c == 4)) continue;
 
                     int tileType = Integer.parseInt(cols[c].trim());
                     int xPos = c * 32;

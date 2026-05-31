@@ -32,13 +32,15 @@ public class GamePanel extends JPanel implements Runnable{
     private final BufferedImage water;
     private BufferedImage[] bulletImage = new BufferedImage[4];
 
+    int enemyTankSpeed = 1;
+    private boolean gameOver;
+
     public GamePanel(GameFrame gameFrame){
         this.gameFrame = gameFrame;
         setBackground(Color.BLACK);
         setFocusable(true);
 
         spriteManager = new SpriteManager();
-
         setPreferredSize(new Dimension(512, 512));
 
         brickWall = spriteManager.getSprite(256, 0, 16, 16);
@@ -47,8 +49,7 @@ public class GamePanel extends JPanel implements Runnable{
         water = spriteManager.getSprite(256, 32, 16,16);
         bulletImage = spriteManager.getBulletSprites();
 
-        playerTank = new PlayerTank(300, 300, spriteManager.getPlayerTanks(), bulletImage);
-        collisionManager = new CollisionManager(map, playerTank, enemyTanks);
+        collisionManager = new CollisionManager(map, playerTank, enemyTanks, this);
 
         addKeyListener(new KeyAdapter() {
             @Override
@@ -94,20 +95,6 @@ public class GamePanel extends JPanel implements Runnable{
                 }
             }
         });
-
-        for (int r = 0; r < 16; r++) {
-            for (int c = 0; c < 16; c++) {
-
-                if (r == 0) {
-
-                }
-                else if (r == 5 && (c == 8 || c == 9)) {
-                    map[r][c] = new BrickWall(c * 32, r * 32, brickWall);
-                }
-            }
-        }
-        playerBase = new Eagle(8 * 32, 15 * 32, spriteManager.getEagleSprites());
-        map[15][8] = playerBase;
     }
 
     public void startGameThread(String mapName){
@@ -115,10 +102,27 @@ public class GamePanel extends JPanel implements Runnable{
             gameThread = null;
         }
 
-        loadMapFromJSONForGame(mapName);
-        if (playerTank != null) {
-            gameFrame.updateLivesUI(playerTank.getHealth());
+        gameOver = false;
+        bullets.clear();
+        enemyTanks.clear();
+        enemySpawnTimer = 0;
+
+        for (int r = 0; r < 16; r++) {
+            for (int c = 0; c < 16; c++) {
+                map[r][c] = null;
+            }
         }
+
+        playerBase = new Eagle(8 * 32, 15 * 32, spriteManager.getEagleSprites());
+        map[15][8] = playerBase;
+
+        loadMapFromJSONForGame(mapName);
+
+        playerTank = new PlayerTank(128, 480, spriteManager.getPlayerTanks(), bulletImage);
+
+        collisionManager = new CollisionManager(map, playerTank, enemyTanks, this);
+
+        gameFrame.updateLivesUI(playerTank.getHealth());
 
         gameThread = new Thread(this);
         gameThread.start();
@@ -127,8 +131,8 @@ public class GamePanel extends JPanel implements Runnable{
 
     @Override
     public void run(){
-        while(gameThread != null){
-            if(playerTank.isMoving()) {
+        while(gameThread != null && !gameOver){
+            if(playerTank != null && playerTank.isMoving()) {
                 if (!collisionManager.checkTankCollision(playerTank)) {
                     playerTank.update();
                 }
@@ -162,18 +166,16 @@ public class GamePanel extends JPanel implements Runnable{
                     }
                 }
                 if (!isSpawnBlocked) {
-                    enemyTanks.add(new EnemyTank(spawnX, spawnY, spriteManager.getEnemyTanks(), bulletImage));
+                    enemyTanks.add(new EnemyTank(spawnX, spawnY, spriteManager.getEnemyTanks(), enemyTankSpeed, bulletImage));
                 } else {
                     enemySpawnTimer = 240;
                 }
             }
 
             for(EnemyTank enemy: enemyTanks){
+                enemy.update();
                 if(collisionManager.checkTankCollision(enemy)){
                     enemy.changeDirection();
-                }
-                else{
-                    enemy.update();
                 }
 
                 if(enemy.shouldShoot()){
@@ -208,9 +210,20 @@ public class GamePanel extends JPanel implements Runnable{
         }
     }
 
+    public void triggerGameOver(){
+        this.gameOver = true;
+        repaint();
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+
+        if(gameThread == null){
+            return;
+        }
+
+
 
         for(int r=0; r<16; r++) {
             for(int c=0; c<16; c++) {
@@ -235,6 +248,12 @@ public class GamePanel extends JPanel implements Runnable{
             }
         }
 
+        if(gameOver){
+            g.setColor(new Color(0, 0, 0, 180));
+            g.fillRect(0, 0, getWidth(), getHeight());
+
+            g.drawImage(spriteManager.getGameOver(), (getWidth() - 64) / 2, (getHeight() - 64) / 2, 64, 32,null);
+        }
     }
 
     public void loadMapFromJSONForGame(String mapName) {
@@ -269,6 +288,10 @@ public class GamePanel extends JPanel implements Runnable{
             for(int r = 0; r < 16; r++){
                 String[] cols = rows[r].split(",");
                 for(int c = 0; c < 16; c++) {
+
+                    if((r == 15 && c == 8) || (r == 15 && c == 4)) {
+                        continue;
+                    }
                     int tileType = Integer.parseInt(cols[c].trim());
                     int xPos = c * 32;
                     int yPos = r * 32;

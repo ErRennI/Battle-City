@@ -148,6 +148,7 @@ public class GameFrame extends JFrame{
         sideCardLayout = new CardLayout();
         sideContainer = new JPanel(sideCardLayout);
         sideContainer.setPreferredSize(new Dimension(200, 0));
+        setResizable(false);
 
         gameSidePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 20));
         gameSidePanel.setBackground(Color.DARK_GRAY);

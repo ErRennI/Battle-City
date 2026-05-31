@@ -8,8 +8,8 @@ public class EnemyTank extends Tank {
     private int moveTimer = 0;
     private int shootTimer = 0;
 
-    public EnemyTank(int xPos, int yPos, BufferedImage[] tankImages, BufferedImage[] bulletImages){
-        super(xPos, yPos, 1, 1, tankImages);
+    public EnemyTank(int xPos, int yPos, BufferedImage[] tankImages, int speed, BufferedImage[] bulletImages){
+        super(xPos, yPos, speed, 1, tankImages);
         this.bulletImages = bulletImages;
         setMoving(true);
         setDirection(Directions.DOWN);
