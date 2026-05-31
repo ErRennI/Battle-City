@@ -4,15 +4,16 @@ import java.awt.image.BufferedImage;
 
 public class Bullet extends GameObject{
     private Directions direction;
-    private final int speed = 4;
+    private final int speed;
     private boolean playerBullet;
     private int bulletLevel;
 
-    public Bullet(int xPos, int yPos, Directions direction, boolean playerBullet, int bulletLevel,BufferedImage[] bulletImages){
+    public Bullet(int xPos, int yPos, Directions direction, boolean playerBullet, int bulletLevel, int speed,BufferedImage[] bulletImages){
         super(xPos, yPos, 8, 8);
         this.direction = direction;
         this.playerBullet = playerBullet;
         this.bulletLevel = bulletLevel;
+        this.speed = speed;
         setImage(bulletImages[direction.ordinal()]);
     }
 

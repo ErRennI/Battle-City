@@ -2,6 +2,7 @@ import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 
 public class GameFrame extends JFrame{
     private JMenuBar menu;
@@ -17,6 +18,8 @@ public class GameFrame extends JFrame{
     private JPanel sideContainer;
     private JLabel livesLabel;
     private JLabel enemyLabel;
+
+    private String currentDifficulty = "EASY";
 
 
     public GameFrame(){
@@ -41,21 +44,45 @@ public class GameFrame extends JFrame{
         newGame.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                ArrayList<String> mapNames = MapEditor.getSavedMapNames();
+
+                String[] mapNameArray = mapNames.toArray(new String[0]);
+                JComboBox<String> mapComboBox = new JComboBox<>(mapNameArray);
+
+                Object[] message = {
+                        "Select a map from saved templates:", mapComboBox,
+                        "\nCurrent Difficulty: " + currentDifficulty
+                };
+
+                int option = JOptionPane.showConfirmDialog(
+                        GameFrame.this,
+                        message,
+                        "Start New Game",
+                        JOptionPane.OK_CANCEL_OPTION,
+                        JOptionPane.PLAIN_MESSAGE
+                );
+
                 cardLayout.show(container, "GAME");
                 sideCardLayout.show(sideContainer, "GAME_SIDE");
 
-                String mapToPlay = JOptionPane.showInputDialog(null, "Enter the map name you want to play:\nPre-Loaded Maps:\n1.Level_1\n2.Level_2\n3.Level_3", "Level_1");
-                if (mapToPlay == null || mapToPlay.trim().isEmpty()) {
-                    mapToPlay = "Level_1";
-                }
 
-                gamePanel.startGameThread(mapToPlay.trim());
-                gamePanel.requestFocusInWindow();
+                if (option == JOptionPane.OK_OPTION) {
+                    String selectedMap = (String) mapComboBox.getSelectedItem();
+                    if (selectedMap != null && !selectedMap.trim().isEmpty()) {
+
+                        cardLayout.show(container, "GAME");
+                        sideCardLayout.show(sideContainer, "GAME_SIDE");
+
+                        gamePanel.setEnemyDifficulty(currentDifficulty);
+                        gamePanel.startGameThread(selectedMap.trim());
+                        gamePanel.requestFocusInWindow();
+                    }
+                }
             }
         });
         menu.add(newGame);
 
-        JMenuItem mapEditor = new JMenuItem("Map Editor");
+        JMenuItem mapEditor = new JMenuItem("Editor");
         mapEditor.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -67,10 +94,30 @@ public class GameFrame extends JFrame{
         menu.add(mapEditor);
 
         JMenuItem options = new JMenuItem("Options");
-        //TO-DO ActionListener
+        options.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String[] difficultyOptions = {"EASY", "MEDIUM", "HARD"};
+
+                String selection = (String) JOptionPane.showInputDialog(
+                        GameFrame.this,
+                        "Select Game Difficulty:\n(Affects enemy speed, spawn rate, and bullet speed)",
+                        "Options",
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        difficultyOptions,
+                        currentDifficulty
+                );
+
+                if (selection != null) {
+                    currentDifficulty = selection;
+                    JOptionPane.showMessageDialog(GameFrame.this, "Difficulty successfully set to: " + currentDifficulty, "Success", JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+        });
         menu.add(options);
 
-        JMenuItem highScores = new JMenuItem("High Scores");
+        JMenuItem highScores = new JMenuItem("Scores");
         highScores.addActionListener(new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -163,15 +210,36 @@ public class GameFrame extends JFrame{
         infoTitle.setForeground(Color.WHITE);
         gameSidePanel.add(infoTitle);
 
-        livesLabel = new JLabel("PLAYER LIVES:");
+        livesLabel = new JLabel("PLAYER LIVES:    ");
         livesLabel.setFont(new Font("Arial", Font.BOLD, 14));
         livesLabel.setForeground(Color.RED);
         gameSidePanel.add(livesLabel);
 
-        enemyLabel = new JLabel("ENEMIES LEFT:");
+        enemyLabel = new JLabel("ENEMIES LEFT:    ");
         enemyLabel.setFont(new Font("Arial", Font.BOLD, 14));
         enemyLabel.setForeground(Color.ORANGE);
         gameSidePanel.add(enemyLabel);
+
+        JButton pauseButton = new JButton("Pause");
+        pauseButton.setFocusable(false);
+        pauseButton.setFont(new Font("Arial", Font.BOLD, 12));
+        pauseButton.setBackground(Color.LIGHT_GRAY);
+
+        pauseButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e){
+                boolean pausedState = gamePanel.togglePause();
+                if (pausedState) {
+                    pauseButton.setText("Resume");
+                    pauseButton.setBackground(Color.GREEN);
+                } else {
+                    pauseButton.setText("Pause");
+                    pauseButton.setBackground(Color.LIGHT_GRAY);
+                }
+                gamePanel.requestFocusInWindow();
+            }
+        });
+        gameSidePanel.add(pauseButton);
 
 
         JPanel editorSidePanel = new JPanel();

@@ -14,7 +14,7 @@ public class PlayerTank extends Tank{
 
     @Override
     public Bullet shoot() {
-        return new Bullet(getXPos() + 12, getYPos() + 12, getDirection(), true, bulletLevel, bulletImages);
+        return new Bullet(getXPos() + 12, getYPos() + 12, getDirection(), true, bulletLevel, 4,bulletImages);
     }
 
     @Override

@@ -4,12 +4,13 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class MapEditor extends JPanel{
     private final SpriteManager spriteManager;
-    private final GameObject[][] editedMap = new GameObject[16][16];
+    private final GameObject[][] editedMap = new GameObject[13][13];
 
     private final BufferedImage bush;
     private final BufferedImage brickWall;
@@ -23,11 +24,11 @@ public class MapEditor extends JPanel{
     public MapEditor(SpriteManager spriteManager){
         this.spriteManager = spriteManager;
         setBackground(Color.BLACK);
-        setPreferredSize(new Dimension(512, 512));
+        setPreferredSize(new Dimension(416, 416));
 
         eagleImg = spriteManager.getEagleSprites();
 
-        editedMap[15][8] = new Eagle(8 * 32, 15 * 32, eagleImg);
+        editedMap[12][6] = new Eagle(6 * 32, 12 * 32, eagleImg);
 
         brickWall = spriteManager.getSprite(256, 0, 16, 16);
         steelWall = spriteManager.getSprite(256, 16, 16, 16);
@@ -54,11 +55,11 @@ public class MapEditor extends JPanel{
         int c = mouseX / 32;
         int r = mouseY / 32;
 
-        if(r < 0 || r >= 16 || c < 0 || c >= 16) return;
+        if(r < 0 || r >= 13 || c < 0 || c >= 13) return;
 
         if (editedMap[r][c] instanceof Eagle) return;
 
-        if ((r == 0 && (c == 0 || c == 7 || c == 14)) || (r == 15 && c == 8) || (r == 15 && c == 4)) return;
+        if ((r == 0 && (c == 0 || c == 6 || c == 12)) || (r == 12 && c == 6) || (r == 12 && c == 4)) return;
 
         int xPos = c * 32;
         int yPos = r * 32;
@@ -93,20 +94,20 @@ public class MapEditor extends JPanel{
     private String mapToMatrixString() {
         StringBuilder sb = new StringBuilder();
         sb.append("[");
-        for (int r = 0; r < 16; r++) {
+        for (int r = 0; r < 13; r++) {
             sb.append("[");
-            for (int c = 0; c < 16; c++) {
+            for (int c = 0; c < 13; c++) {
                 GameObject tile = editedMap[r][c];
-                if (tile == null) sb.append("0");
+                if (tile == null || tile instanceof Eagle) sb.append("0");
                 else if (tile instanceof BrickWall) sb.append("1");
                 else if (tile instanceof SteelWall) sb.append("2");
                 else if (tile instanceof Bush) sb.append("3");
                 else if (tile instanceof Water) sb.append("4");
 
-                if (c < 15) sb.append(",");
+                if (c < 12) sb.append(",");
             }
             sb.append("]");
-            if (r < 15) sb.append(",");
+            if (r < 12) sb.append(",");
         }
         sb.append("]");
         return sb.toString();
@@ -207,10 +208,10 @@ public class MapEditor extends JPanel{
             matrixData = matrixData.replace("[[", "").replace("]]", "");
             String[] rows = matrixData.split("\\],\\[");
 
-            for(int r = 0; r < 16; r++){
+            for(int r = 0; r < 13; r++){
                 String[] cols = rows[r].split(",");
-                for(int c = 0; c < 16; c++){
-                    if((r == 15 && c == 8) || (r == 15 && c == 4)) continue;
+                for(int c = 0; c < 13; c++){
+                    if((r == 12 && c == 6) || (r == 12 && c == 4)) continue;
 
                     int tileType = Integer.parseInt(cols[c].trim());
                     int xPos = c * 32;
@@ -238,8 +239,8 @@ public class MapEditor extends JPanel{
     }
 
     public void clearMap() {
-        for (int r = 0; r < 16; r++) {
-            for (int c = 0; c < 16; c++) {
+        for (int r = 0; r < 13; r++) {
+            for (int c = 0; c < 13; c++) {
                 if (!(editedMap[r][c] instanceof Eagle)) {
                     editedMap[r][c] = null;
                 }
@@ -252,8 +253,8 @@ public class MapEditor extends JPanel{
     public void paintComponent(Graphics g){
         super.paintComponent(g);
 
-        for(int r = 0; r < 16; r++){
-            for(int c = 0; c < 16; c++){
+        for(int r = 0; r < 13; r++){
+            for(int c = 0; c < 13; c++){
                 if(editedMap[r][c] != null){
                     editedMap[r][c].draw(g);
                 }
@@ -267,9 +268,44 @@ public class MapEditor extends JPanel{
         }
 
         g.setColor(Color.DARK_GRAY);
-        g.fillRect(0 * 32, 0 * 32, 32, 32);
-        g.fillRect(7 * 32, 0 * 32, 32, 32);
-        g.fillRect(14 * 32, 0 * 32, 32, 32);
+        g.fillRect(0, 0, 32, 32);
+        g.fillRect(6 * 32, 0, 32, 32);
+        g.fillRect(12 * 32, 0, 32, 32);
+        g.setColor(Color.ORANGE);
+        g.fillRect(4 * 32, 12 * 32, 32, 32);
     }
 
+    public static ArrayList<String> getSavedMapNames(){
+        ArrayList<String> mapNames = new ArrayList<>();
+        File file = new File("maps.json");
+
+        if (file.exists() && file.length() > 0) {
+            BufferedReader reader = null;
+            try {
+                reader = new BufferedReader(new FileReader(file));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    line = line.trim();
+                    if (line.contains("\":") && line.startsWith("\"")) {
+                        int endQuoteIdx = line.indexOf("\"", 1);
+                        if (endQuoteIdx != -1) {
+                            String mapName = line.substring(1, endQuoteIdx);
+                            mapNames.add(mapName);
+                        }
+                    }
+                }
+            } catch (IOException ex) {
+                System.err.println("Error reading map names from JSON");
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        System.err.println("Error closing BufferedReader");
+                    }
+                }
+            }
+        }
+        return mapNames;
+    }
 }

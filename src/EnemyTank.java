@@ -5,12 +5,14 @@ import java.util.Random;
 public class EnemyTank extends Tank {
     private Random random = new Random();
     private BufferedImage[] bulletImages;
+    private int bulletSpeed;
     private int moveTimer = 0;
     private int shootTimer = 0;
 
-    public EnemyTank(int xPos, int yPos, BufferedImage[] tankImages, int speed, BufferedImage[] bulletImages){
+    public EnemyTank(int xPos, int yPos, BufferedImage[] tankImages, int speed, int bulletSpeed,BufferedImage[] bulletImages){
         super(xPos, yPos, speed, 1, tankImages);
         this.bulletImages = bulletImages;
+        this.bulletSpeed = bulletSpeed;
         setMoving(true);
         setDirection(Directions.DOWN);
     }
@@ -20,7 +22,7 @@ public class EnemyTank extends Tank {
         int bulletX = getXPos() + 12;
         int bulletY = getYPos() + 12;
 
-        return new Bullet(bulletX, bulletY, getDirection(), false, 1, bulletImages);
+        return new Bullet(bulletX, bulletY, getDirection(), false, 1,  bulletSpeed,bulletImages);
     }
 
     @Override
@@ -42,8 +44,14 @@ public class EnemyTank extends Tank {
     }
 
     public void changeDirection(){
-        Directions[] direction = Directions.values();
-        setDirection(direction[random.nextInt(direction.length)]);
+        Directions[] directions = Directions.values();
+        Directions newDirection;
+
+        do {
+            newDirection = directions[random.nextInt(directions.length)];
+        } while (newDirection == getDirection());
+
+        setDirection(newDirection);
     }
 
     public boolean shouldShoot(){

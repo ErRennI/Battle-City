@@ -19,7 +19,7 @@ public class GamePanel extends JPanel implements Runnable{
     private GameFrame gameFrame;
     private Thread gameThread;
 
-    private GameObject[][] map = new GameObject[16][16];
+    private GameObject[][] map = new GameObject[13][13];
     private ArrayList<Bullet> bullets = new ArrayList<>();
     private ArrayList<EnemyTank> enemyTanks = new ArrayList<>();
     private int enemySpawnTimer = 0;
@@ -33,6 +33,11 @@ public class GamePanel extends JPanel implements Runnable{
     private BufferedImage[] bulletImage = new BufferedImage[4];
 
     private int enemyTankSpeed = 1;
+    private int enemySpawnCooldown = 300;
+    private int maxEnemyOnScreen = 4;
+    private int enemyBulletSpeed = 4;
+
+    private boolean isPaused = false;
     private boolean gameOver;
     private int score = 0;
     private long gameStartTime;
@@ -44,7 +49,7 @@ public class GamePanel extends JPanel implements Runnable{
         setFocusable(true);
 
         spriteManager = new SpriteManager();
-        setPreferredSize(new Dimension(512, 512));
+        setPreferredSize(new Dimension(416, 416));
 
         brickWall = spriteManager.getSprite(256, 0, 16, 16);
         steelWall = spriteManager.getSprite(256, 16, 16, 16);
@@ -57,24 +62,33 @@ public class GamePanel extends JPanel implements Runnable{
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
+                if (isPaused) {
+                    return;
+                }
+
                 int key = e.getKeyCode();
 
                 if(key == KeyEvent.VK_W){
+                    //alignToGrid(playerTank, true);
                     playerTank.setDirection(Directions.UP);
                     playerTank.setMoving(true);
                 }
                 else if(key == KeyEvent.VK_S){
+                    //alignToGrid(playerTank, true);
                     playerTank.setDirection(Directions.DOWN);
                     playerTank.setMoving(true);
                 }
                 else if(key == KeyEvent.VK_A){
+                    //alignToGrid(playerTank, false);
                     playerTank.setDirection(Directions.LEFT);
                     playerTank.setMoving(true);
                 }
                 else if(key == KeyEvent.VK_D){
+                    //alignToGrid(playerTank, false);
                     playerTank.setDirection(Directions.RIGHT);
                     playerTank.setMoving(true);
                 }
+
                 else if(key == KeyEvent.VK_SPACE){
                     short playerBulletCount = 0;
                     for(Bullet b: bullets){
@@ -114,18 +128,18 @@ public class GamePanel extends JPanel implements Runnable{
         destroyedEnemyCount = 0;
         gameStartTime = System.currentTimeMillis();
 
-        for (int r = 0; r < 16; r++) {
-            for (int c = 0; c < 16; c++) {
+        for (int r = 0; r < 13; r++) {
+            for (int c = 0; c < 13; c++) {
                 map[r][c] = null;
             }
         }
 
-        playerBase = new Eagle(8 * 32, 15 * 32, spriteManager.getEagleSprites());
-        map[15][8] = playerBase;
+        playerBase = new Eagle(6 * 32, 12 * 32, spriteManager.getEagleSprites());
+        map[12][6] = playerBase;
 
         loadMapFromJSONForGame(mapName);
 
-        playerTank = new PlayerTank(128, 480, spriteManager.getPlayerTanks(), bulletImage);
+        playerTank = new PlayerTank(128, 384, spriteManager.getPlayerTanks(), bulletImage);
 
         collisionManager = new CollisionManager(map, playerTank, enemyTanks, this);
 
@@ -139,6 +153,16 @@ public class GamePanel extends JPanel implements Runnable{
     @Override
     public void run(){
         while(gameThread != null && !gameOver){
+
+            if (isPaused) {
+                try {
+                    Thread.sleep(16);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                continue;
+            }
+
             if(playerTank != null && playerTank.isMoving()) {
                 if (!collisionManager.checkTankCollision(playerTank)) {
                     playerTank.update();
@@ -147,17 +171,14 @@ public class GamePanel extends JPanel implements Runnable{
 
             enemySpawnTimer++;
 
-            if(enemySpawnTimer > 300 && enemyTanks.size() < 4){
+            if(enemySpawnTimer > enemySpawnCooldown && enemyTanks.size() < maxEnemyOnScreen){
                 enemySpawnTimer = 0;
 
-                int[] spawnXPositions = { 0, 224, 448 };
+                int[] spawnXPositions = { 0, 192, 384 };
 
                 int randomSpawnX = new Random().nextInt(3);
                 int spawnX = spawnXPositions[randomSpawnX];
                 int spawnY = 0;
-
-                int spawnCol = spawnX / 32;
-                int spawnRow = 0;
 
                 Rectangle spawnBounds = new Rectangle(spawnX, spawnY, 32, 32);
                 boolean isSpawnBlocked = false;
@@ -173,9 +194,9 @@ public class GamePanel extends JPanel implements Runnable{
                     }
                 }
                 if (!isSpawnBlocked) {
-                    enemyTanks.add(new EnemyTank(spawnX, spawnY, spriteManager.getEnemyTanks(), enemyTankSpeed, bulletImage));
+                    enemyTanks.add(new EnemyTank(spawnX, spawnY, spriteManager.getEnemyTanks(), enemyTankSpeed, enemyBulletSpeed,bulletImage));
                 } else {
-                    enemySpawnTimer = 240;
+                    enemySpawnTimer = enemySpawnCooldown - 60;
                 }
             }
 
@@ -200,7 +221,7 @@ public class GamePanel extends JPanel implements Runnable{
                     continue;
                 }
 
-                if(b.getXPos() < 0 || b.getXPos() > 512 || b.getYPos() < 0 || b.getYPos() > 512){
+                if(b.getXPos() < 0 || b.getXPos() > 416 || b.getYPos() < 0 || b.getYPos() > 416){
                     iterator.remove();
                 }
             }
@@ -241,8 +262,8 @@ public class GamePanel extends JPanel implements Runnable{
 
 
 
-        for(int r=0; r<16; r++) {
-            for(int c=0; c<16; c++) {
+        for(int r=0; r<13; r++) {
+            for(int c=0; c<13; c++) {
                 if(map[r][c] != null && !(map[r][c] instanceof Bush)) map[r][c].draw(g);
             }
         }
@@ -256,8 +277,8 @@ public class GamePanel extends JPanel implements Runnable{
             b.draw(g);
         }
 
-        for(int r=0; r<16; r++) {
-            for(int c=0; c<16; c++) {
+        for(int r=0; r<13; r++) {
+            for(int c=0; c<13; c++) {
                 if(map[r][c] instanceof Bush) {
                     map[r][c].draw(g);
                 }
@@ -301,11 +322,11 @@ public class GamePanel extends JPanel implements Runnable{
             matrixData = matrixData.replace("[[", "").replace("]]", "");
             String[] rows = matrixData.split("\\],\\[");
 
-            for(int r = 0; r < 16; r++){
+            for(int r = 0; r < 13; r++){
                 String[] cols = rows[r].split(",");
-                for(int c = 0; c < 16; c++) {
+                for(int c = 0; c < 13; c++) {
 
-                    if((r == 15 && c == 8) || (r == 15 && c == 4)) {
+                    if((r == 12 && c == 6) || (r == 12 && c == 4)) {
                         continue;
                     }
                     int tileType = Integer.parseInt(cols[c].trim());
@@ -320,7 +341,7 @@ public class GamePanel extends JPanel implements Runnable{
                 }
             }
 
-            map[15][8] = playerBase;
+            map[12][6] = playerBase;
         } catch (Exception e) {
             System.err.println("There was a exception while reading from file!");
         }
@@ -338,4 +359,33 @@ public class GamePanel extends JPanel implements Runnable{
     public long getGameStartTime() {
         return this.gameStartTime;
     }
+
+    public void setEnemyDifficulty(String difficulty) {
+        if (difficulty.equals("EASY")) {
+            this.enemyTankSpeed = 1;
+            this.enemySpawnCooldown = 300;
+            this.maxEnemyOnScreen = 4;
+            this.enemyBulletSpeed = 4;
+        } else if (difficulty.equals("MEDIUM")) {
+            this.enemyTankSpeed = 2;
+            this.enemySpawnCooldown = 200;
+            this.maxEnemyOnScreen = 5;
+            this.enemyBulletSpeed = 5;
+        } else if (difficulty.equals("HARD")) {
+            this.enemyTankSpeed = 2;
+            this.enemySpawnCooldown = 120;
+            this.maxEnemyOnScreen = 6;
+            this.enemyBulletSpeed = 7;
+        }
+    }
+
+    public boolean togglePause(){
+        if(gameThread != null && !gameOver){
+            this.isPaused = !this.isPaused;
+        }
+        return this.isPaused;
+    }
+
+
+
 }

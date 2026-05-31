@@ -17,8 +17,6 @@ public abstract class Tank extends GameObject {
     public abstract Bullet shoot();
 
     public void move() {
-        setImage(tankDirectionImages[direction.ordinal()]);
-
         if(isMoving){
             if (direction == Directions.UP)         setYPos(getYPos() - speed);
             else if (direction == Directions.DOWN)   setYPos(getYPos() + speed);
@@ -47,7 +45,12 @@ public abstract class Tank extends GameObject {
     }
 
     public Directions getDirection() { return direction; }
-    public void setDirection(Directions direction) { this.direction = direction; }
+    public void setDirection(Directions direction) {
+        this.direction = direction;
+        if (tankDirectionImages != null && direction.ordinal() < tankDirectionImages.length) {
+            setImage(tankDirectionImages[direction.ordinal()]);
+        }
+    }
     public void setMoving(boolean isMoving){
         this.isMoving = isMoving;
     }
