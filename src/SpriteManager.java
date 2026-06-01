@@ -33,15 +33,21 @@ public class SpriteManager {
     }
 
     public BufferedImage[] getPlayerTanks(){
-        BufferedImage[] images = {this.getSprite(0,0,16,16), this.getSprite(64,0,16,16),
-                this.getSprite(32,0,16, 16), this.getSprite(96,0,16,16)};
-        return images;
+        return new BufferedImage[]{
+                this.getSprite(0, 0, 16, 16),   this.getSprite(16, 0, 16, 16),  // UP (Normal & Alt Frame)
+                this.getSprite(64, 0, 16, 16),  this.getSprite(80, 0, 16, 16),  // DOWN
+                this.getSprite(32, 0, 16, 16),  this.getSprite(48, 0, 16, 16),  // LEFT
+                this.getSprite(96, 0, 16, 16),  this.getSprite(112, 0, 16, 16)  // RIGHT
+        };
     }
 
     public BufferedImage[] getEnemyTanks(){
-        BufferedImage[] images = {this.getSprite(128,0,16,16), this.getSprite(192,0,16,16),
-                this.getSprite(160,0,16, 16), this.getSprite(224,0,16,16)};
-        return images;
+        return new BufferedImage[]{
+                this.getSprite(128, 0, 16, 16), this.getSprite(144, 0, 16, 16), // UP
+                this.getSprite(192, 0, 16, 16), this.getSprite(208, 0, 16, 16), // DOWN
+                this.getSprite(160, 0, 16, 16), this.getSprite(176, 0, 16, 16), // LEFT
+                this.getSprite(224, 0, 16, 16), this.getSprite(240, 0, 16, 16)  // RIGHT
+        };
     }
 
     public BufferedImage[] getBulletSprites() {
@@ -57,5 +63,9 @@ public class SpriteManager {
 
     public BufferedImage getGameOver(){
         return this.getSprite(288, 184, 32, 16);
+    }
+
+    public BufferedImage getPowerUps(int typeIndex){
+        return this.getSprite(256 + (typeIndex * 16), 112, 16, 16);
     }
 }

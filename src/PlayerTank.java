@@ -6,6 +6,7 @@ public class PlayerTank extends Tank{
     private BufferedImage[] bulletImages;
     private short maxBullets = 1;
     private int bulletLevel = 1;
+    private long shieldEndTime = 0;
 
     public PlayerTank(int xPos, int yPos, BufferedImage[] tankImages, BufferedImage[] bulletImages){
         super(xPos, yPos, 2, 3, tankImages);
@@ -38,5 +39,13 @@ public class PlayerTank extends Tank{
     }
     public int getBulletLevel(){
         return bulletLevel;
+    }
+
+    public boolean isInvulnerable(){
+        return System.currentTimeMillis() < shieldEndTime;
+    }
+
+    public void activateShield(int durationMs){
+        this.shieldEndTime = System.currentTimeMillis() + durationMs;
     }
 }

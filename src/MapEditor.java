@@ -259,8 +259,13 @@ public class MapEditor extends JPanel{
                     editedMap[r][c].draw(g);
                 }
                 else{
-                    g.setColor(new Color(40,40,40));
-                    g.drawRect(c * 32, r * 32, 32, 32);
+                    if (r == 12 && c == 4) {
+                        g.setColor(Color.ORANGE);
+                        g.fillRect(c * 32, r * 32, 32, 32);
+                    } else {
+                        g.setColor(new Color(40,40,40));
+                        g.drawRect(c * 32, r * 32, 32, 32);
+                    }
                 }
 
 
@@ -271,8 +276,6 @@ public class MapEditor extends JPanel{
         g.fillRect(0, 0, 32, 32);
         g.fillRect(6 * 32, 0, 32, 32);
         g.fillRect(12 * 32, 0, 32, 32);
-        g.setColor(Color.ORANGE);
-        g.fillRect(4 * 32, 12 * 32, 32, 32);
     }
 
     public static ArrayList<String> getSavedMapNames(){

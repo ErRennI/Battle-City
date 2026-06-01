@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.net.CookieHandler;
 import java.util.Random;
 
 public class EnemyTank extends Tank {
@@ -32,12 +33,18 @@ public class EnemyTank extends Tank {
 
     @Override
     public void update() {
-        super.move();
-
         moveTimer++;
         shootTimer++;
+    }
 
-        if(moveTimer > 120){
+    public void handleMovement(CollisionManager collisionManager){
+        if (moveTimer > 120) {
+            changeDirection();
+            moveTimer = 0;
+        }
+        if (!collisionManager.checkTankCollision(this)) {
+            this.move();
+        } else {
             changeDirection();
             moveTimer = 0;
         }

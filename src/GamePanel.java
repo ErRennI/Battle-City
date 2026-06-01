@@ -10,8 +10,6 @@ import java.util.Iterator;
 import javax.swing.*;
 import java.util.Random;
 
-
-
 public class GamePanel extends JPanel implements Runnable{
     private final SpriteManager spriteManager;
     private CollisionManager collisionManager;
@@ -22,6 +20,7 @@ public class GamePanel extends JPanel implements Runnable{
     private GameObject[][] map = new GameObject[13][13];
     private ArrayList<Bullet> bullets = new ArrayList<>();
     private ArrayList<EnemyTank> enemyTanks = new ArrayList<>();
+    private ArrayList<PowerUp> activePowerUps = new ArrayList<>();
     private int enemySpawnTimer = 0;
     private PlayerTank playerTank;
     private Eagle playerBase;
@@ -42,6 +41,18 @@ public class GamePanel extends JPanel implements Runnable{
     private int score = 0;
     private long gameStartTime;
     private int destroyedEnemyCount = 0;
+
+    private boolean isEnemyFrozen = false;
+    private long freezeEndTime = 0;
+    private boolean isShovelActive = false;
+    private long shovelEndTime = 0;
+    private final int[][] baseWallCoords = {
+            {11, 5}, {11, 6}, {11, 7},
+            {12, 5},          {12, 7}
+    };
+    private GameObject[] previousBaseWallObjects = new GameObject[5];
+
+    private Color gameOverBackground = new Color(0, 0, 0, 180);
 
     public GamePanel(GameFrame gameFrame){
         this.gameFrame = gameFrame;
@@ -69,22 +80,22 @@ public class GamePanel extends JPanel implements Runnable{
                 int key = e.getKeyCode();
 
                 if(key == KeyEvent.VK_W){
-                    //alignToGrid(playerTank, true);
+                    alignToGrid(playerTank, true);
                     playerTank.setDirection(Directions.UP);
                     playerTank.setMoving(true);
                 }
                 else if(key == KeyEvent.VK_S){
-                    //alignToGrid(playerTank, true);
+                    alignToGrid(playerTank, true);
                     playerTank.setDirection(Directions.DOWN);
                     playerTank.setMoving(true);
                 }
                 else if(key == KeyEvent.VK_A){
-                    //alignToGrid(playerTank, false);
+                    alignToGrid(playerTank, false);
                     playerTank.setDirection(Directions.LEFT);
                     playerTank.setMoving(true);
                 }
                 else if(key == KeyEvent.VK_D){
-                    //alignToGrid(playerTank, false);
+                    alignToGrid(playerTank, false);
                     playerTank.setDirection(Directions.RIGHT);
                     playerTank.setMoving(true);
                 }
@@ -122,6 +133,7 @@ public class GamePanel extends JPanel implements Runnable{
         gameOver = false;
         bullets.clear();
         enemyTanks.clear();
+        activePowerUps.clear();
         enemySpawnTimer = 0;
 
         score = 0;
@@ -169,6 +181,8 @@ public class GamePanel extends JPanel implements Runnable{
                 }
             }
 
+            collisionManager.checkPlayerPowerUpCollision();
+
             enemySpawnTimer++;
 
             if(enemySpawnTimer > enemySpawnCooldown && enemyTanks.size() < maxEnemyOnScreen){
@@ -193,20 +207,46 @@ public class GamePanel extends JPanel implements Runnable{
                         }
                     }
                 }
+
+                if (isShovelActive && System.currentTimeMillis() > shovelEndTime) {
+                    isShovelActive = false;
+
+                    if (map[11][5] instanceof SteelWall) map[11][5] = previousBaseWallObjects[0];
+                    if (map[11][6] instanceof SteelWall) map[11][6] = previousBaseWallObjects[1];
+                    if (map[11][7] instanceof SteelWall) map[11][7] = previousBaseWallObjects[2];
+                    if (map[12][5] instanceof SteelWall) map[12][5] = previousBaseWallObjects[3];
+                    if (map[12][7] instanceof SteelWall) map[12][7] = previousBaseWallObjects[4];
+                }
+
                 if (!isSpawnBlocked) {
-                    enemyTanks.add(new EnemyTank(spawnX, spawnY, spriteManager.getEnemyTanks(), enemyTankSpeed, enemyBulletSpeed,bulletImage));
+                    EnemyTank newEnemy = new EnemyTank(spawnX, spawnY, spriteManager.getEnemyTanks(), enemyTankSpeed, enemyBulletSpeed, bulletImage);
+                    if (isEnemyFrozen) {
+                        newEnemy.setMoving(false);
+                    }
+                    enemyTanks.add(newEnemy);
                 } else {
                     enemySpawnTimer = enemySpawnCooldown - 60;
                 }
             }
 
+            if(isEnemyFrozen && System.currentTimeMillis() > freezeEndTime){
+                isEnemyFrozen = false;
+
+                for(EnemyTank enemy : enemyTanks){
+                    enemy.setMoving(true);
+                }
+            }
+
             for(EnemyTank enemy: enemyTanks){
                 enemy.update();
-                if(collisionManager.checkTankCollision(enemy)){
-                    enemy.changeDirection();
+                if(!isEnemyFrozen) {
+                    enemy.handleMovement(collisionManager);
+                }
+                else{
+                    enemy.setMoving(false);
                 }
 
-                if(enemy.shouldShoot()){
+                if(!isEnemyFrozen && enemy.shouldShoot()){
                     bullets.add(enemy.shoot());
                 }
             }
@@ -260,8 +300,6 @@ public class GamePanel extends JPanel implements Runnable{
             return;
         }
 
-
-
         for(int r=0; r<13; r++) {
             for(int c=0; c<13; c++) {
                 if(map[r][c] != null && !(map[r][c] instanceof Bush)) map[r][c].draw(g);
@@ -269,12 +307,16 @@ public class GamePanel extends JPanel implements Runnable{
         }
         playerTank.draw(g);
 
-        for (EnemyTank enemy : enemyTanks) {
+        for(EnemyTank enemy : enemyTanks) {
             enemy.draw(g);
         }
 
-        for (Bullet b : bullets) {
+        for(Bullet b : bullets) {
             b.draw(g);
+        }
+
+        for(PowerUp power: activePowerUps){
+            power.draw(g);
         }
 
         for(int r=0; r<13; r++) {
@@ -286,11 +328,13 @@ public class GamePanel extends JPanel implements Runnable{
         }
 
         if(gameOver){
-            g.setColor(new Color(0, 0, 0, 180));
+            g.setColor(gameOverBackground);
             g.fillRect(0, 0, getWidth(), getHeight());
 
             g.drawImage(spriteManager.getGameOver(), (getWidth() - 64) / 2, (getHeight() - 64) / 2, 64, 32,null);
         }
+
+        Toolkit.getDefaultToolkit().sync();
     }
 
     public void loadMapFromJSONForGame(String mapName) {
@@ -386,6 +430,86 @@ public class GamePanel extends JPanel implements Runnable{
         return this.isPaused;
     }
 
+    public void alignToGrid(PlayerTank tank, boolean alignX){
+        int remainder;
+        if(alignX){
+            int currentX = tank.getXPos();
+            remainder = currentX % 16;
+            if(remainder < 8){
+                tank.setXPos(currentX - remainder);
+            }
+            else{
+                tank.setXPos(currentX + (16 - remainder));
+            }
+        }
+        else {
+            int currentY = tank.getYPos();
+            remainder = currentY % 16;
+            if(remainder < 8){
+                tank.setYPos(currentY - remainder);
+            }
+            else {
+                tank.setYPos(currentY + (16 - remainder));
+            }
+        }
+    }
 
+    public void spawnPowerUpRandomly(int x, int y) {
+        if (new Random().nextInt(100) < 30) {
+            PowerUp.PowerUpTypes[] types = PowerUp.PowerUpTypes.values();
+            PowerUp.PowerUpTypes randomType = types[new Random().nextInt(types.length)];
+
+
+            BufferedImage pImg = spriteManager.getPowerUps(randomType.ordinal());
+
+            activePowerUps.add(new PowerUp(x, y, randomType, pImg));
+        }
+    }
+
+    public void activateShovelShield(int durationMs) {
+        this.isShovelActive = true;
+        this.shovelEndTime = System.currentTimeMillis() + durationMs;
+
+        previousBaseWallObjects[0] = map[11][5];
+        previousBaseWallObjects[1] = map[11][6];
+        previousBaseWallObjects[2] = map[11][7];
+        previousBaseWallObjects[3] = map[12][5];
+        previousBaseWallObjects[4] = map[12][7];
+
+        if (!isTileBlocked(11, 5)) map[11][5] = new SteelWall(5 * 32, 11 * 32, steelWall);
+        if (!isTileBlocked(11, 6)) map[11][6] = new SteelWall(6 * 32, 11 * 32, steelWall);
+        if (!isTileBlocked(11, 7)) map[11][7] = new SteelWall(7 * 32, 11 * 32, steelWall);
+        if (!isTileBlocked(12, 5)) map[12][5] = new SteelWall(5 * 32, 12 * 32, steelWall);
+        if (!isTileBlocked(12, 7)) map[12][7] = new SteelWall(7 * 32, 12 * 32, steelWall);
+    }
+
+    private boolean isTileBlocked(int r, int c) {
+        Rectangle tileBounds = new Rectangle(c * 32, r * 32, 32, 32);
+
+        if (playerTank != null && tileBounds.intersects(playerTank.getBounds())) return true;
+        for (EnemyTank enemy : enemyTanks) {
+            if (tileBounds.intersects(enemy.getBounds())) return true;
+        }
+        for (Bullet b : bullets) {
+            if (tileBounds.intersects(b.getBounds())) return true;
+        }
+        return false;
+    }
+
+    public ArrayList<PowerUp> getActivePowerUps() {
+        return activePowerUps;
+    }
+
+    public int getEnemyCurrentNumber(){
+        return enemyTanks.size();
+    }
+
+    public void setEnemyFrozen(boolean frozen) {
+        this.isEnemyFrozen = frozen;
+    }
+
+    public void setFreezeEndTime(long endTime) {
+        this.freezeEndTime = endTime;
+    }
 
 }

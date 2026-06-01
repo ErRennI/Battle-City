@@ -82,6 +82,7 @@ public class CollisionManager {
             while(enemyTankIterator.hasNext()){
                 EnemyTank enemy = enemyTankIterator.next();
                 if(bulletBounds.intersects(enemy.getBounds())){
+                    gamePanel.spawnPowerUpRandomly(enemy.getXPos(), enemy.getYPos());
                     enemyTankIterator.remove();
                     gamePanel.incrementScore();
                     return true;
@@ -90,6 +91,10 @@ public class CollisionManager {
         }
         else{
             if(bulletBounds.intersects(playerTank.getBounds())){
+                if (playerTank.isInvulnerable()) {
+                    return true;
+                }
+
                 playerTank.setHealth(playerTank.getHealth() - 1);
 
                 if(playerTank.getHealth() <= 0){
@@ -140,6 +145,45 @@ public class CollisionManager {
             }
         }
         return false;
+    }
+
+    public void checkPlayerPowerUpCollision(){
+        Rectangle playerBounds = playerTank.getBounds();
+        Iterator<PowerUp> powerUpIterator = gamePanel.getActivePowerUps().iterator();
+
+        while(powerUpIterator.hasNext()){
+            PowerUp power = powerUpIterator.next();
+
+            if(playerBounds.intersects(power.getBounds())){
+                switch(power.getType()){
+                    case STAR -> playerTank.increaseBulletLevel();
+
+                    case TANK -> playerTank.setHealth(playerTank.getHealth() + 1);
+
+                    case BOMB -> {
+                        enemyTanks.clear();
+                        for(int i = 0; i < gamePanel.getEnemyCurrentNumber(); i++){
+                            gamePanel.incrementScore();
+                        }
+                    }
+
+                    case CLOCK -> {
+                        gamePanel.setEnemyFrozen(true);
+                        gamePanel.setFreezeEndTime(System.currentTimeMillis() + 5000);
+                    }
+
+                    case SHIELD -> {
+                        playerTank.activateShield(6000);
+                    }
+
+                    case SHOVEL -> {
+                        gamePanel.activateShovelShield(6000);
+                    }
+                }
+                powerUpIterator.remove();
+            }
+        }
+
     }
 
 }
