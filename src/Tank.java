@@ -16,10 +16,6 @@ public abstract class Tank extends GameObject {
         this.health = health;
         tankDirectionImages = images;
         setImage(tankDirectionImages[0]);
-
-        if (tankDirectionImages != null && tankDirectionImages.length > 0) {
-            setImage(tankDirectionImages[0]);
-        }
     }
     public abstract Bullet shoot();
 

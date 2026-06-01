@@ -311,9 +311,28 @@ public class GameFrame extends JFrame{
         loadButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String name = JOptionPane.showInputDialog(GameFrame.this, "Enter map name to load:", "Custom Map");
-                if (name != null && !name.trim().isEmpty()) {
-                    mapEditorPanel.loadMapFromJSON(name.trim());
+                ArrayList<String> mapNames = MapEditor.getSavedMapNames();
+
+                String[] mapNameArray = mapNames.toArray(new String[0]);
+                JComboBox<String> mapComboBox = new JComboBox<>(mapNameArray);
+
+                Object[] message = {
+                        "Select a map from saved templates:", mapComboBox,
+                };
+
+                int option = JOptionPane.showConfirmDialog(
+                        GameFrame.this,
+                        message,
+                        "Load Map",
+                        JOptionPane.OK_CANCEL_OPTION,
+                        JOptionPane.PLAIN_MESSAGE
+                );
+                if (option == JOptionPane.OK_OPTION) {
+                    String selectedMap = (String) mapComboBox.getSelectedItem();
+                    if (selectedMap != null) {
+                        mapEditorPanel.loadMapFromJSON(selectedMap);
+                        mapEditorPanel.requestFocusInWindow();
+                    }
                 }
             }
         });

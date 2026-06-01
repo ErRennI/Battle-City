@@ -135,6 +135,8 @@ public class GamePanel extends JPanel implements Runnable{
         enemyTanks.clear();
         activePowerUps.clear();
         enemySpawnTimer = 0;
+        isShovelActive = false;
+        previousBaseWallObjects = new GameObject[5];
 
         score = 0;
         destroyedEnemyCount = 0;
@@ -183,6 +185,16 @@ public class GamePanel extends JPanel implements Runnable{
 
             collisionManager.checkPlayerPowerUpCollision();
 
+            if (isShovelActive && System.currentTimeMillis() > shovelEndTime) {
+                isShovelActive = false;
+
+                if (map[11][5] instanceof SteelWall) map[11][5] = previousBaseWallObjects[0];
+                if (map[11][6] instanceof SteelWall) map[11][6] = previousBaseWallObjects[1];
+                if (map[11][7] instanceof SteelWall) map[11][7] = previousBaseWallObjects[2];
+                if (map[12][5] instanceof SteelWall) map[12][5] = previousBaseWallObjects[3];
+                if (map[12][7] instanceof SteelWall) map[12][7] = previousBaseWallObjects[4];
+            }
+
             enemySpawnTimer++;
 
             if(enemySpawnTimer > enemySpawnCooldown && enemyTanks.size() < maxEnemyOnScreen){
@@ -206,16 +218,6 @@ public class GamePanel extends JPanel implements Runnable{
                             break;
                         }
                     }
-                }
-
-                if (isShovelActive && System.currentTimeMillis() > shovelEndTime) {
-                    isShovelActive = false;
-
-                    if (map[11][5] instanceof SteelWall) map[11][5] = previousBaseWallObjects[0];
-                    if (map[11][6] instanceof SteelWall) map[11][6] = previousBaseWallObjects[1];
-                    if (map[11][7] instanceof SteelWall) map[11][7] = previousBaseWallObjects[2];
-                    if (map[12][5] instanceof SteelWall) map[12][5] = previousBaseWallObjects[3];
-                    if (map[12][7] instanceof SteelWall) map[12][7] = previousBaseWallObjects[4];
                 }
 
                 if (!isSpawnBlocked) {

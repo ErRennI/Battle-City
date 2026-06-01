@@ -173,29 +173,35 @@ public class MapEditor extends JPanel{
     public void loadMapFromJSON(String mapName){
         File file = new File("maps.json");
         if(!file.exists()) return;
-
         BufferedReader reader = null;
 
         try{
             reader = new BufferedReader(new FileReader(file));
             StringBuilder sb = new StringBuilder();
             String line;
+
             while((line = reader.readLine()) != null){
                 sb.append(line.trim());
             }
+            String content = sb.toString().trim();
 
-            String content = sb.toString();
-            content = content.substring(1, content.length() - 1);
+            if(content.startsWith("{")) content = content.substring(1);
+            if(content.endsWith("}")) content = content.substring(0, content.length() - 1);
 
-            String[] parts = content.split("],\"");
+            String[] parts = content.split(",\\s*\"");
             String matrixData = null;
 
             for(String part : parts){
-                String[] kv = part.split("\":");
-                String key = kv[0].replace("\"", "").replace("{", "").trim();
+                String cleanPart = part.startsWith("\"") ? part : "\"" + part;
+                String[] kv = cleanPart.split("\":");
+
+                if(kv.length < 2) continue;
+                String key = kv[0].replace("\"", "").trim();
+
                 if(key.equals(mapName)) {
                     matrixData = kv[1].trim();
-                    if(!matrixData.endsWith("]")) matrixData += "]";
+
+                    if(matrixData.endsWith(",")) matrixData = matrixData.substring(0, matrixData.length() - 1);
                     break;
                 }
             }
@@ -205,12 +211,16 @@ public class MapEditor extends JPanel{
                 return;
             }
 
-            matrixData = matrixData.replace("[[", "").replace("]]", "");
-            String[] rows = matrixData.split("\\],\\[");
+            matrixData = matrixData.replaceAll("\\[\\[", "").replaceAll("\\]\\]", "");
+            String[] rows = matrixData.split("\\],\\s*\\[");
 
-            for(int r = 0; r < 13; r++){
+            int rowsToLoad = Math.min(rows.length, 13);
+
+            for(int r = 0; r < rowsToLoad; r++){
                 String[] cols = rows[r].split(",");
-                for(int c = 0; c < 13; c++){
+                int colsToLoad = Math.min(cols.length, 13);
+
+                for(int c = 0; c < colsToLoad; c++){
                     if((r == 12 && c == 6) || (r == 12 && c == 4)) continue;
 
                     int tileType = Integer.parseInt(cols[c].trim());
@@ -224,14 +234,16 @@ public class MapEditor extends JPanel{
                     else if (tileType == 4) editedMap[r][c] = new Water(xPos, yPos, water);
                 }
             }
+            revalidate();
             repaint();
-        }catch (Exception e){
+        }catch(Exception e){
+            e.printStackTrace();
             JOptionPane.showMessageDialog(this, "An error occurred while loading the map!", "Error", JOptionPane.ERROR_MESSAGE);
         }finally{
             if(reader != null){
                 try{
                     reader.close();
-                }catch (IOException e){
+                }catch(IOException e){
                     e.printStackTrace();
                 }
             }
