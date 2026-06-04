@@ -20,13 +20,6 @@ public class PowerUp extends GameObject{
     }
 
     @Override
-    public void draw(Graphics g){
-        if (getImage() != null) {
-            g.drawImage(getImage(), getXPos(), getYPos(), 32, 32, null);
-        }
-    }
-
-    @Override
     public void update() {}
 
     public PowerUpTypes getType(){

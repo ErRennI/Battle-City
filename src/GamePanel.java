@@ -9,13 +9,18 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.*;
 import java.util.Random;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import  java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class GamePanel extends JPanel implements Runnable{
     private final SpriteManager spriteManager;
     private CollisionManager collisionManager;
+    private final KeyManager keyManager;
 
     private GameFrame gameFrame;
-    private Thread gameThread;
+    private ExecutorService gameExecutor;
 
     private GameObject[][] map = new GameObject[13][13];
     private ArrayList<Bullet> bullets = new ArrayList<>();
@@ -36,11 +41,13 @@ public class GamePanel extends JPanel implements Runnable{
     private int maxEnemyOnScreen = 4;
     private int enemyBulletSpeed = 4;
 
-    private boolean isPaused = false;
-    private boolean gameOver;
+    private volatile boolean isPaused = false;
+    private volatile boolean gameOver;
     private int score = 0;
     private long gameStartTime;
     private int destroyedEnemyCount = 0;
+
+    private boolean wasShootPressedLastFrame = false;
 
     private boolean isEnemyFrozen = false;
     private long freezeEndTime = 0;
@@ -69,65 +76,22 @@ public class GamePanel extends JPanel implements Runnable{
         bulletImage = spriteManager.getBulletSprites();
 
         collisionManager = new CollisionManager(map, playerTank, enemyTanks, this);
-
-        addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (isPaused) {
-                    return;
-                }
-
-                int key = e.getKeyCode();
-
-                if(key == KeyEvent.VK_W){
-                    alignToGrid(playerTank, true);
-                    playerTank.setDirection(Directions.UP);
-                    playerTank.setMoving(true);
-                }
-                else if(key == KeyEvent.VK_S){
-                    alignToGrid(playerTank, true);
-                    playerTank.setDirection(Directions.DOWN);
-                    playerTank.setMoving(true);
-                }
-                else if(key == KeyEvent.VK_A){
-                    alignToGrid(playerTank, false);
-                    playerTank.setDirection(Directions.LEFT);
-                    playerTank.setMoving(true);
-                }
-                else if(key == KeyEvent.VK_D){
-                    alignToGrid(playerTank, false);
-                    playerTank.setDirection(Directions.RIGHT);
-                    playerTank.setMoving(true);
-                }
-
-                else if(key == KeyEvent.VK_SPACE){
-                    short playerBulletCount = 0;
-                    for(Bullet b: bullets){
-                        if(b.isPlayerBullet()){
-                            playerBulletCount++;
-                        }
-                    }
-
-                    if(playerBulletCount < playerTank.getMaxBullets()){
-                        bullets.add(playerTank.shoot());
-                    }
-                }
-            }
-
-            @Override
-            public void keyReleased(KeyEvent e){
-                int key = e.getKeyCode();
-
-                if(key == KeyEvent.VK_W || key == KeyEvent.VK_S || key == KeyEvent.VK_A || key == KeyEvent.VK_D) {
-                    playerTank.setMoving(false);
-                }
-            }
-        });
+        this.keyManager = new KeyManager();
+        addKeyListener(keyManager);
     }
 
     public void startGameThread(String mapName){
-        if(gameThread != null) {
-            gameThread = null;
+        if(gameExecutor != null) {
+             gameOver = true;
+             gameExecutor.shutdown();
+
+             try{
+                 gameExecutor.awaitTermination(100, TimeUnit.MILLISECONDS);
+             }
+             catch(InterruptedException _){
+                 System.err.println("Thread termination awaited but interrupted.");
+             }
+             gameExecutor = null;
         }
 
         gameOver = false;
@@ -159,14 +123,14 @@ public class GamePanel extends JPanel implements Runnable{
 
         gameFrame.updateLivesUI(playerTank.getHealth());
 
-        gameThread = new Thread(this);
-        gameThread.start();
+        gameExecutor = Executors.newSingleThreadExecutor();
+        gameExecutor.execute(this);
     }
 
 
     @Override
     public void run(){
-        while(gameThread != null && !gameOver){
+        while(gameExecutor != null && !gameOver){
 
             if (isPaused) {
                 try {
@@ -177,9 +141,62 @@ public class GamePanel extends JPanel implements Runnable{
                 continue;
             }
 
-            if(playerTank != null && playerTank.isMoving()) {
-                if (!collisionManager.checkTankCollision(playerTank)) {
-                    playerTank.update();
+            if(playerTank != null){
+                boolean movingThisFrame = false;
+
+                if(keyManager.isUpPressed()){
+                    alignToGrid(playerTank, true);
+                    playerTank.setDirection(Directions.UP);
+                    playerTank.setMoving(true);
+                    movingThisFrame = true;
+                }
+                else if(keyManager.isDownPressed()){
+                    alignToGrid(playerTank, true);
+                    playerTank.setDirection(Directions.DOWN);
+                    playerTank.setMoving(true);
+                    movingThisFrame = true;
+                }
+                else if(keyManager.isLeftPressed()){
+                    alignToGrid(playerTank, false);
+                    playerTank.setDirection(Directions.LEFT);
+                    playerTank.setMoving(true);
+                    movingThisFrame = true;
+                }
+                else if(keyManager.isRightPressed()){
+                    alignToGrid(playerTank, false);
+                    playerTank.setDirection(Directions.RIGHT);
+                    playerTank.setMoving(true);
+                    movingThisFrame = true;
+                }
+
+                if(!movingThisFrame){
+                    playerTank.setMoving(false);
+                }
+
+                if(playerTank.isMoving()){
+                    if(!collisionManager.checkTankCollision(playerTank)){
+                        playerTank.update();
+                    }
+                }
+
+                if(keyManager.isShootPressed()){
+                    if(!wasShootPressedLastFrame){
+                        short playerBulletCount = 0;
+
+                        for(Bullet b : bullets){
+                            if(b.isPlayerBullet()){
+                                playerBulletCount++;
+                            }
+                        }
+
+
+                        if(playerBulletCount < playerTank.getMaxBullets()){
+                            bullets.add(playerTank.shoot());
+                        }
+                    }
+                    wasShootPressedLastFrame = true;
+                } else {
+                    wasShootPressedLastFrame = false;
                 }
             }
 
@@ -287,18 +304,21 @@ public class GamePanel extends JPanel implements Runnable{
     }
 
     public void triggerGameOver(){
-        this.gameOver = true;
-        this.gameThread = null;
-
-        repaint();
-        ScoreManager.saveScore(gameFrame, score, gameStartTime);
+        if (!gameOver) {
+            this.gameOver = true;
+            if (gameExecutor != null) {
+                gameExecutor.shutdown();
+            }
+            repaint();
+            ScoreManager.saveScore(gameFrame, score, gameStartTime);
+        }
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        if(gameThread == null){
+        if(gameExecutor == null){
             return;
         }
 
@@ -426,7 +446,7 @@ public class GamePanel extends JPanel implements Runnable{
     }
 
     public boolean togglePause(){
-        if(gameThread != null && !gameOver){
+        if(gameExecutor != null && !gameOver){
             this.isPaused = !this.isPaused;
         }
         return this.isPaused;

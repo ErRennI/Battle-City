@@ -10,4 +10,8 @@ public abstract class Wall extends GameObject{
     public int getWallDurability(){
         return wallDurability;
     }
+
+
+    @Override
+    public void update(){}
 }

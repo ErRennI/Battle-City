@@ -8,10 +8,5 @@ public class Bush extends GameObject{
     }
 
     @Override
-    public void draw(Graphics g) {
-        g.drawImage(getImage(), getXPos(), getYPos(), 32, 32, null);
-    }
-
-    @Override
     public void update() {}
 }

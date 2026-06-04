@@ -17,7 +17,9 @@ public abstract class GameObject {
         this.height = height;
     }
 
-    public abstract void draw(Graphics g);
+    public void draw(Graphics g){
+        g.drawImage(getImage(), getXPos(), getYPos(),32,32, null);
+    }
 
     public void deleteGameObject(){
         this.isActive = false;

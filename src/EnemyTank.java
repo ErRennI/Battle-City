@@ -26,10 +26,6 @@ public class EnemyTank extends Tank {
         return new Bullet(bulletX, bulletY, getDirection(), false, 1,  bulletSpeed,bulletImages);
     }
 
-    @Override
-    public void draw(Graphics g) {
-        g.drawImage(super.getImage(), getXPos(), getYPos(),32,32, null);
-    }
 
     @Override
     public void update() {
