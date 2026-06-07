@@ -10,9 +10,8 @@ import java.util.Iterator;
 import javax.swing.*;
 import java.util.Random;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import  java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+
 
 public class GamePanel extends JPanel implements Runnable{
     private final SpriteManager spriteManager;
@@ -46,6 +45,7 @@ public class GamePanel extends JPanel implements Runnable{
     private int score = 0;
     private long gameStartTime;
     private int destroyedEnemyCount = 0;
+    private int totalSpawnedEnemies = 0;
 
     private boolean wasShootPressedLastFrame = false;
 
@@ -104,6 +104,7 @@ public class GamePanel extends JPanel implements Runnable{
 
         score = 0;
         destroyedEnemyCount = 0;
+        totalSpawnedEnemies = 0;
         gameStartTime = System.currentTimeMillis();
 
         for (int r = 0; r < 13; r++) {
@@ -214,7 +215,7 @@ public class GamePanel extends JPanel implements Runnable{
 
             enemySpawnTimer++;
 
-            if(enemySpawnTimer > enemySpawnCooldown && enemyTanks.size() < maxEnemyOnScreen){
+            if(enemySpawnTimer > enemySpawnCooldown && enemyTanks.size() < maxEnemyOnScreen && (totalSpawnedEnemies < 20)){
                 enemySpawnTimer = 0;
 
                 int[] spawnXPositions = { 0, 192, 384 };
@@ -243,6 +244,8 @@ public class GamePanel extends JPanel implements Runnable{
                         newEnemy.setMoving(false);
                     }
                     enemyTanks.add(newEnemy);
+
+                    totalSpawnedEnemies++;
                 } else {
                     enemySpawnTimer = enemySpawnCooldown - 60;
                 }
@@ -366,36 +369,39 @@ public class GamePanel extends JPanel implements Runnable{
         try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
             StringBuilder sb = new StringBuilder();
             String line;
-            while((line = reader.readLine()) != null) sb.append(line.trim());
-
+            while((line = reader.readLine()) != null) {
+                sb.append(line.trim());
+            }
             String content = sb.toString();
-            content = content.substring(1, content.length() - 1);
 
-            String[] parts = content.split("],\"");
-            String matrixData = null;
-            for(String part : parts){
-                String[] kv = part.split("\":");
-                String key = kv[0].replace("\"", "").replace("{", "").trim();
-                if(key.equals(mapName)){
-                    matrixData = kv[1].trim();
-                    if(!matrixData.endsWith("]")) matrixData += "]";
-                    break;
-                }
+            String searchKey = "\"" + mapName + "\":";
+            int startIdx = content.indexOf(searchKey);
+            if (startIdx == -1) return;
+
+            int matrixStart = content.indexOf("[", startIdx + searchKey.length());
+            int matrixEnd = content.indexOf("]]", matrixStart) + 2;
+
+            String matrixData = content.substring(matrixStart, matrixEnd);
+
+            if (matrixData.startsWith("[[")) {
+                matrixData = matrixData.substring(2);
+            }
+            if (matrixData.endsWith("]]")) {
+                matrixData = matrixData.substring(0, matrixData.length() - 2);
             }
 
-            if(matrixData == null) return;
-
-            matrixData = matrixData.replace("[[", "").replace("]]", "");
             String[] rows = matrixData.split("\\],\\[");
 
             for(int r = 0; r < 13; r++){
                 String[] cols = rows[r].split(",");
                 for(int c = 0; c < 13; c++) {
-
                     if((r == 12 && c == 6) || (r == 12 && c == 4)) {
                         continue;
                     }
-                    int tileType = Integer.parseInt(cols[c].trim());
+
+                    String cleanVal = cols[c].replace("[", "").replace("]", "").trim();
+                    int tileType = Integer.parseInt(cleanVal);
+
                     int xPos = c * 32;
                     int yPos = r * 32;
 
@@ -406,10 +412,11 @@ public class GamePanel extends JPanel implements Runnable{
                     else if(tileType == 4) map[r][c] = new Water(xPos, yPos, water);
                 }
             }
-
             map[12][6] = playerBase;
+
         } catch (Exception e) {
-            System.err.println("There was a exception while reading from file!");
+            e.printStackTrace();
+            System.err.println("There was an exception while reading from file!");
         }
     }
 

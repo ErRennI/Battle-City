@@ -38,7 +38,7 @@ public class GameFrame extends JFrame{
 
     public void setMenu(){
         menu = new JMenuBar();
-        menu.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 0));
+
 
         JMenuItem newGame = new JMenuItem("New Game");
         newGame.addActionListener(new ActionListener() {
@@ -61,10 +61,6 @@ public class GameFrame extends JFrame{
                         JOptionPane.OK_CANCEL_OPTION,
                         JOptionPane.PLAIN_MESSAGE
                 );
-
-                cardLayout.show(container, "GAME");
-                sideCardLayout.show(sideContainer, "GAME_SIDE");
-
 
                 if (option == JOptionPane.OK_OPTION) {
                     String selectedMap = (String) mapComboBox.getSelectedItem();
@@ -191,16 +187,21 @@ public class GameFrame extends JFrame{
         cardLayout = new CardLayout();
         container = new JPanel(cardLayout);
 
+        container.setBackground(Color.DARK_GRAY);
+        container.setPreferredSize(new Dimension(416, 416));
+
+        StartScreen startScreen = new StartScreen();
         gamePanel = new GamePanel(this);
         mapEditorPanel = new MapEditor(new SpriteManager());
 
+        container.add(startScreen, "START");
         container.add(gamePanel, "GAME");
         container.add(mapEditorPanel, "EDITOR");
 
 
         sideCardLayout = new CardLayout();
         sideContainer = new JPanel(sideCardLayout);
-        sideContainer.setPreferredSize(new Dimension(200, 0));
+        sideContainer.setPreferredSize(new Dimension(200, 416));
         setResizable(false);
 
         gameSidePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 20));
@@ -343,6 +344,8 @@ public class GameFrame extends JFrame{
 
         mainSpace.add(sideContainer, BorderLayout.EAST);
         mainSpace.add(container, BorderLayout.CENTER);
+
+        mainSpace.setBackground(Color.DARK_GRAY);
 
         add(mainSpace, BorderLayout.CENTER);
 
